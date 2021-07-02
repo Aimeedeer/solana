@@ -239,7 +239,7 @@ pub mod stable_log {
     /// Log a program invoke.
     ///
     /// The general form is:
-    ///     "Program <address> invoke [<depth>]"
+    ///     "Program <address> invoke \[<depth>\]"
     pub fn program_invoke(
         logger: &Rc<RefCell<dyn Logger>>,
         program_id: &Pubkey,

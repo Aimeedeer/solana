@@ -1,7 +1,7 @@
 //! Crds Gossip Push overlay
 //! This module is used to propagate recently created CrdsValues across the network
 //! Eager push strategy is based on Plumtree
-//! http://asc.di.fct.unl.pt/~jleitao/pdf/srds07-leitao.pdf
+//! <http://asc.di.fct.unl.pt/~jleitao/pdf/srds07-leitao.pdf>
 //!
 //! Main differences are:
 //! 1. There is no `max hop`.  Messages are signed with a local wallclock.  If they are outside of

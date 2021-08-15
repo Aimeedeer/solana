@@ -1056,7 +1056,7 @@ fn get_identity() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
     let identity = rpc_client.get_identity()?;
     assert!(identity.to_bytes().len() == 32);
-    
+
     Ok(())
 }
 

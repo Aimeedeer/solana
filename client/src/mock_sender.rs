@@ -7,9 +7,10 @@ use {
         rpc_request::RpcRequest,
         rpc_response::{
             Response, RpcAccountBalance, RpcBlockProduction, RpcBlockProductionRange, RpcBlockhash,
-            RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcPerfSample,
-            RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation, RpcSupply,
-            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState, RpcIdentity,
+            RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcIdentity,
+            RpcPerfSample, RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation,
+            RpcSupply, RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus,
+            StakeActivationState,
         },
         rpc_sender::RpcSender,
     },

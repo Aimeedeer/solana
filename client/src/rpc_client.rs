@@ -2771,9 +2771,9 @@ impl RpcClient {
     /// #     rpc_client::RpcClient,
     /// # };
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let limit = Some(10);
+    /// let limit = 10;
     /// let performance_samples = rpc_client.get_recent_performance_samples(
-    ///     limit,
+    ///     Some(limit),
     /// )?;
     /// # Ok::<(), ClientError>(())
     /// ```
@@ -2784,6 +2784,23 @@ impl RpcClient {
         self.send(RpcRequest::GetRecentPerformanceSamples, json!([limit]))
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getIdentity`] RPC method.
+    ///
+    /// [`getIdentity`]: https://docs.solana.com/developing/clients/jsonrpc-api#getidentity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let identity = rpc_client.get_identity()?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_identity(&self) -> ClientResult<Pubkey> {
         let rpc_identity: RpcIdentity = self.send(RpcRequest::GetIdentity, Value::Null)?;
 

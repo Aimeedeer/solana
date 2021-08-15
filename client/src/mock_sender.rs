@@ -9,7 +9,7 @@ use {
             Response, RpcAccountBalance, RpcBlockProduction, RpcBlockProductionRange, RpcBlockhash,
             RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcPerfSample,
             RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation, RpcSupply,
-            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState,
+            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState, RpcIdentity,
         },
         rpc_sender::RpcSender,
     },
@@ -389,6 +389,9 @@ impl RpcSender for MockSender {
                 num_slots: 123,
                 sample_period_secs: 60,
             }])?,
+            "getIdentity" => serde_json::to_value(RpcIdentity {
+                identity: PUBKEY.to_string(),
+            })?,
             _ => Value::Null,
         };
         Ok(val)

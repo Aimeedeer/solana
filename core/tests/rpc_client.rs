@@ -1047,6 +1047,20 @@ fn get_recent_performance_samples() -> ClientResult<()> {
 }
 
 #[test]
+fn get_identity() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+
+    let rpc_client = RpcClient::new(validator.rpc_url());
+    let identity = rpc_client.get_identity()?;
+    assert!(identity.to_bytes().len() == 32);
+    
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

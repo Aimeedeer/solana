@@ -2902,6 +2902,25 @@ impl RpcClient {
         )
     }
 
+    /// RPC Reference
+    ///
+    /// This method corresponds directly to the [`getVersion`] RPC
+    /// method.
+    ///
+    /// [`getVersion`]: https://docs.solana.com/developing/clients/jsonrpc-api#getversion
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # use solana_sdk::signature::{Keypair, Signer};
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let version = rpc_client.get_version()?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_version(&self) -> ClientResult<RpcVersionInfo> {
         self.send(RpcRequest::GetVersion, Value::Null)
     }

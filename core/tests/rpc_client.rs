@@ -1089,6 +1089,27 @@ fn get_inflation_rate() -> ClientResult<()> {
 }
 
 #[test]
+fn get_version() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let version = rpc_client.get_version()?;
+    dbg!(&version);
+    assert!(version.solana_core.len() > 0);
+    
+    Ok(())    
+}
+
+#[test]
+fn minimut_leader_slot() -> ClientResult<()> {
+
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

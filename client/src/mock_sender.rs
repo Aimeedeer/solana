@@ -8,9 +8,9 @@ use {
         rpc_response::{
             Response, RpcAccountBalance, RpcBlockProduction, RpcBlockProductionRange, RpcBlockhash,
             RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcIdentity,
-            RpcPerfSample, RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation,
-            RpcSupply, RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus,
-            StakeActivationState, RpcInflationGovernor, RpcInflationRate, RpcInflationReward,
+            RpcInflationGovernor, RpcInflationRate, RpcInflationReward, RpcPerfSample,
+            RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation, RpcSupply,
+            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState,
         },
         rpc_sender::RpcSender,
     },

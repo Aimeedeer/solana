@@ -1070,7 +1070,7 @@ fn get_inflation_governor() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
     let inflation_governor = rpc_client.get_inflation_governor()?;
     assert!(inflation_governor.initial > 0.0);
-    
+
     Ok(())
 }
 
@@ -1084,7 +1084,7 @@ fn get_inflation_rate() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
     let inflation_rate = rpc_client.get_inflation_rate()?;
     assert!(inflation_rate.total > 0.0);
-    
+
     Ok(())
 }
 

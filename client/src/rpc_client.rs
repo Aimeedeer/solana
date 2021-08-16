@@ -2812,14 +2812,75 @@ impl RpcClient {
         })
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the
+    /// [`getInflationGovernor`] RPC method.
+    ///
+    /// [`getInflationGovernor`]: https://docs.solana.com/developing/clients/jsonrpc-api#getinflationgovernor
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let inflation_governor = rpc_client.get_inflation_governor()?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_inflation_governor(&self) -> ClientResult<RpcInflationGovernor> {
         self.send(RpcRequest::GetInflationGovernor, Value::Null)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getInflationRate`] RPC method.
+    ///
+    /// [`getInflationRate`]: https://docs.solana.com/developing/clients/jsonrpc-api#getinflationrate
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let inflation_rate = rpc_client.get_inflation_rate()?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_inflation_rate(&self) -> ClientResult<RpcInflationRate> {
         self.send(RpcRequest::GetInflationRate, Value::Null)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getInflationReward`] RPC method.
+    ///
+    /// [`getInflationReward`]: https://docs.solana.com/developing/clients/jsonrpc-api#getinflationreward
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # use solana_sdk::signature::{Keypair, Signer};
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let epoch_info = rpc_client.get_epoch_info()?;
+    /// # let epoch = epoch_info.epoch;
+    /// # let alice = Keypair::new();
+    /// # let bob = Keypair::new();
+    /// let addresses = vec![alice.pubkey(), bob.pubkey()];
+    /// let inflation_reward = rpc_client.get_inflation_reward(
+    ///     &addresses,
+    ///     Some(epoch),
+    /// )?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_inflation_reward(
         &self,
         addresses: &[Pubkey],

@@ -1061,6 +1061,34 @@ fn get_identity() -> ClientResult<()> {
 }
 
 #[test]
+fn get_inflation_governor() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+
+    let rpc_client = RpcClient::new(validator.rpc_url());
+    let inflation_governor = rpc_client.get_inflation_governor()?;
+    assert!(inflation_governor.initial > 0.0);
+    
+    Ok(())
+}
+
+#[test]
+fn get_inflation_rate() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+
+    let rpc_client = RpcClient::new(validator.rpc_url());
+    let inflation_rate = rpc_client.get_inflation_rate()?;
+    assert!(inflation_rate.total > 0.0);
+    
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

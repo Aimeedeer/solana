@@ -10,7 +10,7 @@ use {
             RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcIdentity,
             RpcPerfSample, RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation,
             RpcSupply, RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus,
-            StakeActivationState,
+            StakeActivationState, RpcInflationGovernor, RpcInflationRate, RpcInflationReward,
         },
         rpc_sender::RpcSender,
     },
@@ -393,6 +393,29 @@ impl RpcSender for MockSender {
             "getIdentity" => serde_json::to_value(RpcIdentity {
                 identity: PUBKEY.to_string(),
             })?,
+            "getInflationGovernor" => serde_json::to_value(
+                RpcInflationGovernor {
+                    initial: 0.08,
+                    terminal: 0.015,
+                    taper: 0.15,
+                    foundation: 0.05,
+                    foundation_term: 7.0,
+                })?,
+            "getInflationRate" => serde_json::to_value(
+                RpcInflationRate {
+                    total: 0.08,
+                    validator: 0.076,
+                    foundation: 0.004,
+                    epoch: 0,
+                })?,
+            "getInflationReward" => serde_json::to_value(vec![
+                Some(RpcInflationReward {
+                    epoch: 2,
+                    effective_slot: 224,
+                    amount: 2500,
+                    post_balance: 499999442500,
+                    commission: None,
+                })])?,
             _ => Value::Null,
         };
         Ok(val)

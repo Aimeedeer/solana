@@ -1099,8 +1099,8 @@ fn get_version() -> ClientResult<()> {
     let version = rpc_client.get_version()?;
     dbg!(&version);
     assert!(version.solana_core.len() > 0);
-    
-    Ok(())    
+
+    Ok(())
 }
 
 #[test]
@@ -1113,7 +1113,7 @@ fn minimum_ledger_slot() -> ClientResult<()> {
 
     let slot = rpc_client.minimum_ledger_slot()?;
     assert!(slot == 0);
-    
+
     Ok(())
 }
 
@@ -1132,7 +1132,7 @@ fn send_and_confirm_transaction() -> ClientResult<()> {
     let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
     let signature = rpc_client.send_and_confirm_transaction(&tx)?;
     assert!(tx.signatures.contains(&signature));
-    
+
     Ok(())
 }
 

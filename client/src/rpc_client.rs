@@ -2907,7 +2907,7 @@ impl RpcClient {
     /// method.
     ///
     /// [`getVersion`]: https://docs.solana.com/developing/clients/jsonrpc-api#getversion
-    /// 
+    ///
     /// # Examples
     ///
     /// ```

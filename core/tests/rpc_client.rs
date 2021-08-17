@@ -1112,8 +1112,26 @@ fn minimum_ledger_slot() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
 
     let slot = rpc_client.minimum_ledger_slot()?;
-    dbg!(&slot);
     assert!(slot == 0);
+    
+    Ok(())
+}
+
+#[test]
+fn send_and_confirm_transaction() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let bob = Keypair::new();
+    let lamports = 50;
+    let latest_blockhash = rpc_client.get_latest_blockhash()?;
+
+    let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
+    let signature = rpc_client.send_and_confirm_transaction(&tx)?;
+    assert!(tx.signatures.contains(&signature));
     
     Ok(())
 }

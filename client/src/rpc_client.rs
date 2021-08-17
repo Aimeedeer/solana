@@ -1295,7 +1295,6 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// #     system_transaction,
     /// # };
-    /// # use std::time::Duration;
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// # let alice = Keypair::new();
     /// # let bob = Keypair::new();
@@ -2902,7 +2901,7 @@ impl RpcClient {
         )
     }
 
-    /// RPC Reference
+    /// # RPC Reference
     ///
     /// This method corresponds directly to the [`getVersion`] RPC
     /// method.
@@ -2925,7 +2924,7 @@ impl RpcClient {
         self.send(RpcRequest::GetVersion, Value::Null)
     }
 
-    /// RPC Reference
+    /// # RPC Reference
     ///
     /// This method corresponds directly to the [`minimumLedgerSlot`]
     /// RPC method.
@@ -2947,6 +2946,34 @@ impl RpcClient {
         self.send(RpcRequest::MinimumLedgerSlot, Value::Null)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method is built on the [`sendTransaction`] RPC method.
+    ///
+    /// [`sendTransaction`]: https://docs.solana.com/developing/clients/jsonrpc-api#sendtransaction
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signature::Signature,
+    /// #     signer::keypair::Keypair,
+    /// #     system_transaction,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// # let bob = Keypair::new();
+    /// # let lamports = 50;
+    /// # let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
+    /// let signature = rpc_client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn send_and_confirm_transaction(
         &self,
         transaction: &Transaction,

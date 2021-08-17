@@ -2925,6 +2925,24 @@ impl RpcClient {
         self.send(RpcRequest::GetVersion, Value::Null)
     }
 
+    /// RPC Reference
+    ///
+    /// This method corresponds directly to the [`minimumLedgerSlot`]
+    /// RPC method.
+    ///
+    /// [`minimumLedgerSlot`]: https://docs.solana.com/developing/clients/jsonrpc-api#minimumledgerslot
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     client_error::ClientError,
+    /// #     rpc_client::RpcClient,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let slot = rpc_client.minimum_ledger_slot()?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn minimum_ledger_slot(&self) -> ClientResult<Slot> {
         self.send(RpcRequest::MinimumLedgerSlot, Value::Null)
     }

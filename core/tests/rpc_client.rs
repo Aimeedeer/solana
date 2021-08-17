@@ -1104,8 +1104,17 @@ fn get_version() -> ClientResult<()> {
 }
 
 #[test]
-fn minimut_leader_slot() -> ClientResult<()> {
+fn minimum_ledger_slot() -> ClientResult<()> {
+    solana_logger::setup();
 
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let slot = rpc_client.minimum_ledger_slot()?;
+    dbg!(&slot);
+    assert!(slot == 0);
+    
     Ok(())
 }
 

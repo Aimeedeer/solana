@@ -1137,6 +1137,34 @@ fn send_and_confirm_transaction() -> ClientResult<()> {
 }
 
 #[test]
+fn get_max_retransmit_slot() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let slot = rpc_client.get_max_retransmit_slot()?;
+    assert!(slot == 0);
+
+    Ok(())
+}
+
+#[test]
+fn get_max_shred_insert_slot() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let slot = rpc_client.get_max_shred_insert_slot()?;
+    assert!(slot == 0);
+
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

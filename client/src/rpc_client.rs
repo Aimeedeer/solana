@@ -3073,10 +3073,44 @@ impl RpcClient {
             })?
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the
+    /// [`getMaxRetransmitSlot`] RPC method.
+    ///
+    /// [`getMaxRetransmitSlot`]: https://docs.solana.com/developing/clients/jsonrpc-api#getmaxretransmitslot
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let slot = rpc_client.get_max_retransmit_slot()?;
+    /// # Ok::<(), ClientError>(())
     pub fn get_max_retransmit_slot(&self) -> ClientResult<Slot> {
         self.send(RpcRequest::GetMaxRetransmitSlot, Value::Null)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the
+    /// [`getMaxShredInsertSlot`] RPC method.
+    ///
+    /// [`getMaxShredInsertSlot`]: https://docs.solana.com/developing/clients/jsonrpc-api#getmaxshredinsertslot
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let slot = rpc_client.get_max_shred_insert_slot()?;
+    /// # Ok::<(), ClientError>(())
     pub fn get_max_shred_insert_slot(&self) -> ClientResult<Slot> {
         self.send(RpcRequest::GetMaxShredInsertSlot, Value::Null)
     }

@@ -24,6 +24,8 @@ use {
         signature::Signature,
         sysvar::epoch_schedule::EpochSchedule,
         transaction::{self, Transaction, TransactionError},
+        account::Account,
+        pubkey::Pubkey,
     },
     solana_transaction_status::{
         EncodedConfirmedBlock, EncodedConfirmedTransaction, EncodedTransaction,
@@ -34,6 +36,7 @@ use {
     solana_version::Version,
     std::{collections::HashMap, net::SocketAddr, sync::RwLock},
 };
+use std::str::FromStr;
 
 pub const PUBKEY: &str = "7RoSF9fUmdphVCpabEoefH81WwrW7orsWonXWqTXkKV8";
 pub const SIGNATURE: &str =
@@ -98,6 +101,27 @@ impl RpcSender for MockSender {
             "getAccountInfo" => serde_json::to_value(Response {
                 context: RpcResponseContext { slot: 1 },
                 value: Value::Null,
+                /* 
+                // error: thread 'main' panicked at 'called
+                // `Result::unwrap()` on an `Err` value: ClientError {
+                // request: None, kind: SerdeJson(Error("data did not
+                // match any variant of untagged enum UiAccountData",
+                // line: 0, column: 0)) }'
+
+                // it seems to consider this newly constructed Account
+                // as executable account even I set `executable` as
+                // false
+                {
+                    let owner = Pubkey::from_str(&"BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa".to_string()).unwrap();
+
+                    Account {
+                        lamports: 1_000_000,
+                        data: vec![],
+                        owner: owner,
+                        executable: false,
+                        rent_epoch: 0,
+                    }
+                } */
             })?,
             "getBalance" => serde_json::to_value(Response {
                 context: RpcResponseContext { slot: 1 },

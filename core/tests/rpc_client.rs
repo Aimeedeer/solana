@@ -1137,6 +1137,20 @@ fn send_and_confirm_transaction() -> ClientResult<()> {
 }
 
 #[test]
+fn get_account() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let account = rpc_client.get_account(&alice.pubkey())?;
+    dbg!(&account);
+
+    Ok(())
+}
+
+#[test]
 fn get_max_retransmit_slot() -> ClientResult<()> {
     solana_logger::setup();
 

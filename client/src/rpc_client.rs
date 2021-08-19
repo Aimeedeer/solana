@@ -3026,6 +3026,33 @@ impl RpcClient {
 
     /// Note that `get_account` returns `Err(..)` if the account does not exist whereas
     /// `get_account_with_commitment` returns `Ok(None)` if the account does not exist.
+    ///
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getAccountInfo`] RPC
+    /// method.
+    ///
+    /// [`getAccountInfo`]: https://docs.solana.com/developing/clients/jsonrpc-api#getaccountinfo
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// # };
+    /// # use solana_sdk::pubkey::Pubkey;
+    /// # use std::str::FromStr;
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// let alice = "BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa".to_string();
+    /// let account = rpc_client.get_account(&Pubkey::from_str(&alice).unwrap())?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_account(&self, pubkey: &Pubkey) -> ClientResult<Account> {
         self.get_account_with_commitment(pubkey, self.commitment())?
             .value

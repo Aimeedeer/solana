@@ -3171,6 +3171,31 @@ impl RpcClient {
         self.send(RpcRequest::GetMaxShredInsertSlot, Value::Null)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the
+    /// [`getMultipleAccounts`] RPC method.
+    ///
+    /// [`getMultipleAccounts`]: https://docs.solana.com/developing/clients/jsonrpc-api#getmultipleaccounts
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let alice = Keypair::new();
+    /// let bob = Keypair::new();
+    /// let pubkeys = vec![alice.pubkey(), bob.pubkey()];
+    /// let accounts = rpc_client.get_multiple_accounts(&pubkeys)?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_multiple_accounts(&self, pubkeys: &[Pubkey]) -> ClientResult<Vec<Option<Account>>> {
         Ok(self
             .get_multiple_accounts_with_commitment(pubkeys, self.commitment())?

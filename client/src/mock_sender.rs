@@ -439,6 +439,10 @@ impl RpcSender for MockSender {
                 })])?,
             "minimumLedgerSlot" => json![123],
             "getMaxRetransmitSlot" => json![123],
+            "getMultipleAccounts" => serde_json::to_value(Response {
+                context: RpcResponseContext { slot: 1 },
+                value: vec![Value::Null, Value::Null]
+            })?,
             _ => Value::Null,
         };
         Ok(val)

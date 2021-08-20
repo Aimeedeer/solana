@@ -1194,6 +1194,22 @@ fn get_max_shred_insert_slot() -> ClientResult<()> {
 }
 
 #[test]
+fn get_multiple_accounts() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let bob = Keypair::new();
+    let pubkeys = vec![alice.pubkey(), bob.pubkey()];
+    let accounts = rpc_client.get_multiple_accounts(&pubkeys)?;
+    assert!(accounts.len() == 2);
+        
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

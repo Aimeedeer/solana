@@ -3049,8 +3049,9 @@ impl RpcClient {
     /// # use std::str::FromStr;
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// # let alice = Keypair::new();
-    /// let alice = "BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa".to_string();
-    /// let account = rpc_client.get_account(&Pubkey::from_str(&alice).unwrap())?;
+    /// let alice = "BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa";
+    /// let alice = Pubkey::from_str(alice).unwrap();
+    /// let account = rpc_client.get_account(&alice)?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub fn get_account(&self, pubkey: &Pubkey) -> ClientResult<Account> {
@@ -3087,6 +3088,7 @@ impl RpcClient {
                 } = serde_json::from_value::<Response<Option<UiAccount>>>(result_json)?;
                 trace!("Response account {:?} {:?}", pubkey, rpc_account);
                 let account = rpc_account.and_then(|rpc_account| rpc_account.decode());
+
                 Ok(Response {
                     context,
                     value: account,

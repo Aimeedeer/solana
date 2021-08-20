@@ -3044,14 +3044,12 @@ impl RpcClient {
     /// # use solana_sdk::{
     /// #     signature::Signer,
     /// #     signer::keypair::Keypair,
+    /// #     pubkey::Pubkey,
     /// # };
-    /// # use solana_sdk::pubkey::Pubkey;
     /// # use std::str::FromStr;
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
-    /// let alice = "BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa";
-    /// let alice = Pubkey::from_str(alice).unwrap();
-    /// let account = rpc_client.get_account(&alice)?;
+    /// let alice_pubkey = Pubkey::from_str("BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa").unwrap();
+    /// let account = rpc_client.get_account(&alice_pubkey)?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub fn get_account(&self, pubkey: &Pubkey) -> ClientResult<Account> {

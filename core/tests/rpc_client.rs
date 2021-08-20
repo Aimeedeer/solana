@@ -1146,7 +1146,7 @@ fn get_account() -> ClientResult<()> {
 
     let account = rpc_client.get_account(&alice.pubkey())?;
     assert!(account.lamports > 0);
-    
+
     Ok(())
 }
 
@@ -1158,10 +1158,8 @@ fn get_account_with_commitment() -> ClientResult<()> {
     let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
     let rpc_client = RpcClient::new(validator.rpc_url());
 
-    let account = rpc_client.get_account_with_commitment(
-        &alice.pubkey(),
-        CommitmentConfig::processed(),
-    )?;
+    let account =
+        rpc_client.get_account_with_commitment(&alice.pubkey(), CommitmentConfig::processed())?;
     assert!(account.value.is_some());
 
     Ok(())

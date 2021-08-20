@@ -111,7 +111,6 @@ impl RpcSender for MockSender {
                         executable: false,
                         rent_epoch: 0,
                     };
-                    
                     UiAccount::encode(
                         &pubkey,
                         &account,

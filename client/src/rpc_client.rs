@@ -3058,6 +3058,35 @@ impl RpcClient {
             .ok_or_else(|| RpcError::ForUser(format!("AccountNotFound: pubkey={}", pubkey)).into())
     }
 
+    /// # RPC Reference
+    ///
+    /// This method is built on the [`getAccountInfo`] RPC method.
+    ///
+    /// [`getAccountInfo`]: https://docs.solana.com/developing/clients/jsonrpc-api#getaccountinfo
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// #     pubkey::Pubkey,
+    /// #     commitment_config::CommitmentConfig,
+    /// # };
+    /// # use std::str::FromStr;
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let alice_pubkey = Pubkey::from_str("BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa").unwrap();
+    /// let commitment_config = CommitmentConfig::processed();
+    /// let account = rpc_client.get_account_with_commitment(
+    ///     &alice_pubkey,
+    ///     commitment_config,
+    /// )?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_account_with_commitment(
         &self,
         pubkey: &Pubkey,

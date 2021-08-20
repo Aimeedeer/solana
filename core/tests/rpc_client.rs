@@ -1205,7 +1205,7 @@ fn get_multiple_accounts() -> ClientResult<()> {
     let pubkeys = vec![alice.pubkey(), bob.pubkey()];
     let accounts = rpc_client.get_multiple_accounts(&pubkeys)?;
     assert!(accounts.len() == 2);
-        
+
     Ok(())
 }
 
@@ -1220,12 +1220,9 @@ fn get_multiple_accounts_with_commitment() -> ClientResult<()> {
     let bob = Keypair::new();
     let pubkeys = vec![alice.pubkey(), bob.pubkey()];
     let commitment_config = CommitmentConfig::processed();
-    let accounts = rpc_client.get_multiple_accounts_with_commitment(
-        &pubkeys,
-        commitment_config,
-    )?;
+    let accounts = rpc_client.get_multiple_accounts_with_commitment(&pubkeys, commitment_config)?;
     assert!(accounts.value.len() == 2);
-        
+
     Ok(())
 }
 

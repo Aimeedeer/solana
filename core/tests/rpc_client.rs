@@ -1210,6 +1210,26 @@ fn get_multiple_accounts() -> ClientResult<()> {
 }
 
 #[test]
+fn get_multiple_accounts_with_commitment() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let bob = Keypair::new();
+    let pubkeys = vec![alice.pubkey(), bob.pubkey()];
+    let commitment_config = CommitmentConfig::processed();
+    let accounts = rpc_client.get_multiple_accounts_with_commitment(
+        &pubkeys,
+        commitment_config,
+    )?;
+    assert!(accounts.value.len() == 2);
+        
+    Ok(())
+}
+
+#[test]
 fn send_transaction_no_signatures() -> ClientResult<()> {
     solana_logger::setup();
 

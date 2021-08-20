@@ -3190,8 +3190,8 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// # };
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let alice = Keypair::new();
-    /// let bob = Keypair::new();
+    /// # let alice = Keypair::new();
+    /// # let bob = Keypair::new();
     /// let pubkeys = vec![alice.pubkey(), bob.pubkey()];
     /// let accounts = rpc_client.get_multiple_accounts(&pubkeys)?;
     /// # Ok::<(), ClientError>(())
@@ -3202,6 +3202,35 @@ impl RpcClient {
             .value)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method is built on the [`getMultipleAccounts`] RPC method.
+    ///
+    /// [`getMultipleAccounts`]: https://docs.solana.com/developing/clients/jsonrpc-api#getmultipleaccounts
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// #     commitment_config::CommitmentConfig,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// # let bob = Keypair::new();
+    /// let pubkeys = vec![alice.pubkey(), bob.pubkey()];
+    /// let commitment_config = CommitmentConfig::processed();
+    /// let accounts = rpc_client.get_multiple_accounts_with_commitment(
+    ///     &pubkeys,
+    ///     commitment_config,
+    /// )?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_multiple_accounts_with_commitment(
         &self,
         pubkeys: &[Pubkey],

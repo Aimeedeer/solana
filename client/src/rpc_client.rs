@@ -3257,10 +3257,54 @@ impl RpcClient {
         })
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getAccountInfo`] RPC
+    /// method and returns the value of `data` field.
+    ///
+    /// [`getAccountInfo`]: https://docs.solana.com/developing/clients/jsonrpc-api#getaccountinfo
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// #     pubkey::Pubkey,
+    /// # };
+    /// # use std::str::FromStr;
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let alice_pubkey = Pubkey::from_str("BgvYtJEfmZYdVKiptmMjxGzv8iQoo4MWjsP3QsTkhhxa").unwrap();
+    /// let account_data = rpc_client.get_account_data(&alice_pubkey)?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_account_data(&self, pubkey: &Pubkey) -> ClientResult<Vec<u8>> {
         Ok(self.get_account(pubkey)?.data)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the
+    /// [`getMinimumBalanceForRentExemption`] RPC method.
+    ///
+    /// [`getMinimumBalanceForRentExemption`]: https://docs.solana.com/developing/clients/jsonrpc-api#getminimumbalanceforrentexemption
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let data_len = 300;
+    /// let balance = rpc_client.get_minimum_balance_for_rent_exemption(data_len)?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_minimum_balance_for_rent_exemption(&self, data_len: usize) -> ClientResult<u64> {
         let request = RpcRequest::GetMinimumBalanceForRentExemption;
         let minimum_balance_json = self
@@ -3279,12 +3323,63 @@ impl RpcClient {
     }
 
     /// Request the balance of the account `pubkey`.
+    ///
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getBalance`] RPC
+    /// method.
+    ///
+    /// [`getBalance`]: https://docs.solana.com/developing/clients/jsonrpc-api#getbalance
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// let balance = rpc_client.get_balance(&alice.pubkey())?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_balance(&self, pubkey: &Pubkey) -> ClientResult<u64> {
         Ok(self
             .get_balance_with_commitment(pubkey, self.commitment())?
             .value)
     }
 
+    /// # RPC Reference
+    ///
+    /// This method is built on the [`getBalance`] RPC method.
+    ///
+    /// [`getBalance`]: https://docs.solana.com/developing/clients/jsonrpc-api#getbalance
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// #     commitment_config::CommitmentConfig,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// let commitment_config = CommitmentConfig::processed();
+    /// let balance = rpc_client.get_balance_with_commitment(
+    ///     &alice.pubkey(),
+    ///     commitment_config,
+    /// )?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_balance_with_commitment(
         &self,
         pubkey: &Pubkey,
@@ -3299,6 +3394,29 @@ impl RpcClient {
         )
     }
 
+    /// # RPC Reference
+    ///
+    /// This method corresponds directly to the [`getProgramAccounts`]
+    /// RPC method.
+    ///
+    /// [`getProgramAccounts`]: https://docs.solana.com/developing/clients/jsonrpc-api#getprogramaccounts
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// # };
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// let accounts = rpc_client.get_program_accounts(&alice.pubkey())?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_program_accounts(&self, pubkey: &Pubkey) -> ClientResult<Vec<(Pubkey, Account)>> {
         self.get_program_accounts_with_config(
             pubkey,

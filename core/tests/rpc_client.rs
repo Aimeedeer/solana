@@ -1166,6 +1166,20 @@ fn get_account_with_commitment() -> ClientResult<()> {
 }
 
 #[test]
+fn get_account_data() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let account_data = rpc_client.get_account_data(&alice.pubkey())?;
+    assert!(account_data.len() == 0);
+        
+    Ok(())
+}
+
+#[test]
 fn get_max_retransmit_slot() -> ClientResult<()> {
     solana_logger::setup();
 
@@ -1222,6 +1236,69 @@ fn get_multiple_accounts_with_commitment() -> ClientResult<()> {
     let commitment_config = CommitmentConfig::processed();
     let accounts = rpc_client.get_multiple_accounts_with_commitment(&pubkeys, commitment_config)?;
     assert!(accounts.value.len() == 2);
+
+    Ok(())
+}
+
+#[test]
+fn get_minimum_balance_for_rent_exemption() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let balance = rpc_client.get_minimum_balance_for_rent_exemption(300)?;
+    assert!(balance == 428);
+    // todo: find the caculation
+    
+    Ok(())
+}
+
+#[test]
+fn get_balance() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let balance = rpc_client.get_balance(&alice.pubkey())?;
+    assert!(balance == 500000000000000000);
+    // todo: not sure if Alice always has the same amount of balance
+    
+    Ok(())
+}
+
+#[test]
+fn get_balance_with_commitment() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let balance = rpc_client.get_balance_with_commitment(
+        &alice.pubkey(),
+        CommitmentConfig::processed(),
+    )?;
+    assert!(balance.value == 500000000000000000);
+
+    // todo: not sure if Alice always has the same amount of balance
+    
+    Ok(())
+}
+
+#[test]
+fn get_program_accounts() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let accounts = rpc_client.get_program_accounts(&alice.pubkey())?;
+    assert!(accounts.len() == 0);
 
     Ok(())
 }

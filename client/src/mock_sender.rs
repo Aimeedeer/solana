@@ -11,7 +11,7 @@ use {
             RpcConfirmedTransactionStatusWithSignature, RpcContactInfo, RpcFees, RpcIdentity,
             RpcInflationGovernor, RpcInflationRate, RpcInflationReward, RpcPerfSample,
             RpcResponseContext, RpcSimulateTransactionResult, RpcStakeActivation, RpcSupply,
-            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState,
+            RpcVersionInfo, RpcVoteAccountInfo, RpcVoteAccountStatus, StakeActivationState, RpcKeyedAccount,
         },
         rpc_sender::RpcSender,
     },
@@ -443,6 +443,28 @@ impl RpcSender for MockSender {
                 context: RpcResponseContext { slot: 1 },
                 value: vec![Value::Null, Value::Null]
             })?,
+            "getProgramAccounts" => {
+                let pubkey = Pubkey::from_str(&PUBKEY.to_string()).unwrap();
+                let account = Account {
+                    lamports: 1_000_000,
+                    data: vec![],
+                    owner: pubkey,
+                    executable: false,
+                    rent_epoch: 0,
+                };
+                serde_json::to_value(vec![
+                    RpcKeyedAccount {
+                        pubkey: PUBKEY.to_string(),
+                        account: UiAccount::encode(
+                            &pubkey,
+                            &account,
+                            UiAccountEncoding::Base64,
+                            None,
+                            None,
+                        )
+                    }
+                ])?
+            },
             _ => Value::Null,
         };
         Ok(val)

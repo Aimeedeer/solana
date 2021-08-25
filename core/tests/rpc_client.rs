@@ -1,20 +1,21 @@
 use log::trace;
+use solana_account_decoder::{UiAccountEncoding, UiDataSliceConfig};
 use solana_client::{
     client_error::{ClientError, ClientErrorKind, Result as ClientResult},
     rpc_client::{GetConfirmedSignaturesForAddress2Config, RpcClient},
     rpc_config::{
-        RpcBlockConfig, RpcBlockProductionConfig, RpcBlockProductionConfigRange,
-        RpcGetVoteAccountsConfig, RpcLargestAccountsConfig, RpcLargestAccountsFilter,
-        RpcLeaderScheduleConfig, RpcSendTransactionConfig, RpcSimulateTransactionConfig,
-        RpcTransactionConfig, RpcAccountInfoConfig, RpcProgramAccountsConfig
+        RpcAccountInfoConfig, RpcBlockConfig, RpcBlockProductionConfig,
+        RpcBlockProductionConfigRange, RpcGetVoteAccountsConfig, RpcLargestAccountsConfig,
+        RpcLargestAccountsFilter, RpcLeaderScheduleConfig, RpcProgramAccountsConfig,
+        RpcSendTransactionConfig, RpcSimulateTransactionConfig, RpcTransactionConfig,
     },
     rpc_custom_error::{
         JSON_RPC_SERVER_ERROR_SEND_TRANSACTION_PREFLIGHT_FAILURE,
         JSON_RPC_SERVER_ERROR_TRANSACTION_SIGNATURE_VERIFICATION_FAILURE,
     },
+    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
     rpc_request::RpcError,
     rpc_response::StakeActivationState,
-    rpc_filter::{MemcmpEncodedBytes, Memcmp, RpcFilterType},
 };
 use solana_core::test_validator::{TestValidator, TestValidatorGenesis};
 use solana_rpc::rpc::JsonRpcConfig;
@@ -33,7 +34,6 @@ use solana_streamer::socket::SocketAddrSpace;
 use solana_transaction_status::{
     TransactionConfirmationStatus, TransactionDetails, UiTransactionEncoding,
 };
-use solana_account_decoder::{UiDataSliceConfig, UiAccountEncoding};
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::time::Duration;
@@ -1177,7 +1177,7 @@ fn get_account_data() -> ClientResult<()> {
 
     let account_data = rpc_client.get_account_data(&alice.pubkey())?;
     assert!(account_data.len() == 0);
-        
+
     Ok(())
 }
 
@@ -1253,7 +1253,7 @@ fn get_minimum_balance_for_rent_exemption() -> ClientResult<()> {
     let balance = rpc_client.get_minimum_balance_for_rent_exemption(300)?;
     assert!(balance == 428);
     // todo: find the caculation
-    
+
     Ok(())
 }
 
@@ -1268,7 +1268,7 @@ fn get_balance() -> ClientResult<()> {
     let balance = rpc_client.get_balance(&alice.pubkey())?;
     assert!(balance == 500000000000000000);
     // todo: not sure if Alice always has the same amount of balance
-    
+
     Ok(())
 }
 
@@ -1280,14 +1280,12 @@ fn get_balance_with_commitment() -> ClientResult<()> {
     let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
     let rpc_client = RpcClient::new(validator.rpc_url());
 
-    let balance = rpc_client.get_balance_with_commitment(
-        &alice.pubkey(),
-        CommitmentConfig::processed(),
-    )?;
+    let balance =
+        rpc_client.get_balance_with_commitment(&alice.pubkey(), CommitmentConfig::processed())?;
     assert!(balance.value == 500000000000000000);
 
     // todo: not sure if Alice always has the same amount of balance
-    
+
     Ok(())
 }
 
@@ -1300,7 +1298,6 @@ fn get_program_accounts() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
 
     let accounts = rpc_client.get_program_accounts(&alice.pubkey())?;
-    dbg!(&accounts);
     assert!(accounts.len() == 0);
 
     Ok(())
@@ -1325,21 +1322,21 @@ fn get_program_accounts_with_config() -> ClientResult<()> {
                 bytes: MemcmpEncodedBytes::Binary(base58_bytes.to_string()),
                 encoding: None,
             }),
-        ]), 
+        ]),
         account_config: RpcAccountInfoConfig {
             encoding: Some(UiAccountEncoding::Base64),
             data_slice: Some(UiDataSliceConfig {
                 offset: 0,
                 length: 5,
             }),
-            commitment: Some(CommitmentConfig::processed()), 
+            commitment: Some(CommitmentConfig::processed()),
             ..RpcAccountInfoConfig::default()
         },
         with_context: Some(false), // todo: test panic when this is setted to `true`
     };
 
     let accounts = rpc_client.get_program_accounts_with_config(&alice.pubkey(), config)?;
-    dbg!(&accounts);
+    assert!(accounts.len() == 0);
 
     Ok(())
 }

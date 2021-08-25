@@ -3478,7 +3478,7 @@ impl RpcClient {
     ///         }),
     ///         commitment: Some(CommitmentConfig::processed()),
     ///     },
-    ///     with_context: Some(true),
+    ///     with_context: Some(false),
     /// };
     /// let accounts = rpc_client.get_program_accounts_with_config(
     ///     &alice.pubkey(),

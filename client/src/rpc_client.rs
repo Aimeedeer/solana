@@ -3430,6 +3430,62 @@ impl RpcClient {
         )
     }
 
+    /// # RPC Reference
+    ///
+    /// This method is built on the [`getProgramAccounts`] RPC method.
+    ///
+    /// [`getProgramAccounts`]: https://docs.solana.com/developing/clients/jsonrpc-api#getprogramaccounts
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::{
+    /// #     rpc_client::RpcClient,
+    /// #     client_error::ClientError,
+    /// #     rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
+    /// #     rpc_filter::{MemcmpEncodedBytes, RpcFilterType, Memcmp},
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signature::Signer,
+    /// #     signer::keypair::Keypair,
+    /// #     commitment_config::CommitmentConfig,
+    /// # };
+    /// # use solana_account_decoder::{UiDataSliceConfig, UiAccountEncoding};
+    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # let alice = Keypair::new();
+    /// # let base58_bytes = "\
+    /// #     1111111111111111111111111111111111111111111111111111111111111111\
+    /// #     1111111111111111111111111111111111111111111111111111111111111111";
+    /// let memcmp = RpcFilterType::Memcmp(Memcmp {
+    ///     offset: 0,
+    ///     bytes: MemcmpEncodedBytes::Binary(base58_bytes.to_string()),
+    ///     encoding: None,
+    /// });
+    /// let config = RpcProgramAccountsConfig {
+    ///     filters: Some(vec![
+    ///         RpcFilterType::DataSize(128),
+    ///         RpcFilterType::Memcmp(Memcmp {
+    ///             offset: 0,
+    ///             bytes: MemcmpEncodedBytes::Binary(base58_bytes.to_string()),
+    ///             encoding: None,
+    ///         }),
+    ///     ]),
+    ///     account_config: RpcAccountInfoConfig {
+    ///         encoding: Some(UiAccountEncoding::Base64),
+    ///         data_slice: Some(UiDataSliceConfig {
+    ///             offset: 0,
+    ///             length: 5,
+    ///         }),
+    ///         commitment: Some(CommitmentConfig::processed()),
+    ///     },
+    ///     with_context: Some(true),
+    /// };
+    /// let accounts = rpc_client.get_program_accounts_with_config(
+    ///     &alice.pubkey(),
+    ///     config,
+    /// )?;
+    /// # Ok::<(), ClientError>(())
+    /// ```
     pub fn get_program_accounts_with_config(
         &self,
         pubkey: &Pubkey,

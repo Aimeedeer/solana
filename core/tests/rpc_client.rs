@@ -6,7 +6,7 @@ use solana_client::{
         RpcBlockConfig, RpcBlockProductionConfig, RpcBlockProductionConfigRange,
         RpcGetVoteAccountsConfig, RpcLargestAccountsConfig, RpcLargestAccountsFilter,
         RpcLeaderScheduleConfig, RpcSendTransactionConfig, RpcSimulateTransactionConfig,
-        RpcTransactionConfig,
+        RpcTransactionConfig, RpcAccountInfoConfig, RpcProgramAccountsConfig
     },
     rpc_custom_error::{
         JSON_RPC_SERVER_ERROR_SEND_TRANSACTION_PREFLIGHT_FAILURE,
@@ -14,6 +14,7 @@ use solana_client::{
     },
     rpc_request::RpcError,
     rpc_response::StakeActivationState,
+    rpc_filter::{MemcmpEncodedBytes, Memcmp, RpcFilterType},
 };
 use solana_core::test_validator::{TestValidator, TestValidatorGenesis};
 use solana_rpc::rpc::JsonRpcConfig;
@@ -32,6 +33,7 @@ use solana_streamer::socket::SocketAddrSpace;
 use solana_transaction_status::{
     TransactionConfirmationStatus, TransactionDetails, UiTransactionEncoding,
 };
+use solana_account_decoder::{UiDataSliceConfig, UiAccountEncoding};
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::time::Duration;
@@ -1298,7 +1300,46 @@ fn get_program_accounts() -> ClientResult<()> {
     let rpc_client = RpcClient::new(validator.rpc_url());
 
     let accounts = rpc_client.get_program_accounts(&alice.pubkey())?;
+    dbg!(&accounts);
     assert!(accounts.len() == 0);
+
+    Ok(())
+}
+
+#[test]
+fn get_program_accounts_with_config() -> ClientResult<()> {
+    solana_logger::setup();
+
+    let alice = Keypair::new();
+    let validator = TestValidator::with_no_fees(alice.pubkey(), None, SocketAddrSpace::Unspecified);
+    let rpc_client = RpcClient::new(validator.rpc_url());
+
+    let base58_bytes = "\
+    1111111111111111111111111111111111111111111111111111111111111111\
+    1111111111111111111111111111111111111111111111111111111111111111";
+    let config = RpcProgramAccountsConfig {
+        filters: Some(vec![
+            RpcFilterType::DataSize(128),
+            RpcFilterType::Memcmp(Memcmp {
+                offset: 0,
+                bytes: MemcmpEncodedBytes::Binary(base58_bytes.to_string()),
+                encoding: None,
+            }),
+        ]), 
+        account_config: RpcAccountInfoConfig {
+            encoding: Some(UiAccountEncoding::Base64),
+            data_slice: Some(UiDataSliceConfig {
+                offset: 0,
+                length: 5,
+            }),
+            commitment: Some(CommitmentConfig::processed()), 
+            ..RpcAccountInfoConfig::default()
+        },
+        with_context: Some(false), // todo: test panic when this is setted to `true`
+    };
+
+    let accounts = rpc_client.get_program_accounts_with_config(&alice.pubkey(), config)?;
+    dbg!(&accounts);
 
     Ok(())
 }

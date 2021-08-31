@@ -60,6 +60,22 @@ pub struct CliSignerInfo {
 }
 
 impl CliSignerInfo {
+
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_clap_utils::keypair::{CliSigners, CliSignerInfo};
+    /// # use solana_sdk::signer::keypair::keypair_from_seed;
+    /// # use solana_sdk::signature::Signer;
+    /// # let keypair = keypair_from_seed(&[0u8; 32]).unwrap();
+    /// let pubkey = keypair.pubkey();
+    /// let signers: CliSigners = vec![Box::new(keypair)];
+    /// let signer_info = CliSignerInfo { signers };
+    /// let index = signer_info.index_of(Some(pubkey));
+    /// # assert!(index.is_some());
+    /// # let index = signer_info.index_of(None);
+    /// # assert_eq!(index, Some(0));
+    /// ```
     pub fn index_of(&self, pubkey: Option<Pubkey>) -> Option<usize> {
         if let Some(pubkey) = pubkey {
             self.signers
@@ -69,6 +85,22 @@ impl CliSignerInfo {
             Some(0)
         }
     }
+
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_clap_utils::keypair::{CliSigners, CliSignerInfo};
+    /// # use solana_sdk::signer::keypair::keypair_from_seed;
+    /// # use solana_sdk::signature::Signer;
+    /// # let keypair = keypair_from_seed(&[0u8; 32]).unwrap();
+    /// let pubkey = keypair.pubkey();
+    /// let signers: CliSigners = vec![Box::new(keypair)];
+    /// let signer_info = CliSignerInfo { signers };
+    /// let index = signer_info.index_of_or_none(Some(pubkey));
+    /// # assert!(index.is_some());
+    /// # let index = signer_info.index_of_or_none(None);
+    /// # assert_eq!(index, None);
+    /// ```
     pub fn index_of_or_none(&self, pubkey: Option<Pubkey>) -> Option<usize> {
         if let Some(pubkey) = pubkey {
             self.signers

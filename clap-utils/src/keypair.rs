@@ -109,6 +109,35 @@ impl CliSignerInfo {
             None
         }
     }
+
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_clap_utils::keypair::{CliSigners, CliSignerInfo};
+    /// # use solana_sdk::signer::keypair::keypair_from_seed;
+    /// # use solana_sdk::signature::Signer;
+    /// # use solana_sdk::pubkey::Pubkey;
+    /// # use solana_sdk::message::Message;
+    /// # use solana_sdk::instruction::{Instruction, AccountMeta};
+    /// # let keypair = keypair_from_seed(&[0u8; 32]).unwrap();
+    /// # let signers: CliSigners = vec![Box::new(keypair)];
+    /// # let signer_info = CliSignerInfo { signers };
+    /// # // Construct a message as the parameter
+    /// # let program_id0 = Pubkey::new_unique();
+    /// # let program_id1 = Pubkey::new_unique();
+    /// # let id0 = Pubkey::default();
+    /// # let id1 = Pubkey::new_unique();
+    /// # let message = Message::new(
+    /// #     &[
+    /// #         Instruction::new_with_bincode(program_id0, &0, vec![AccountMeta::new(id0, false)]),
+    /// #         Instruction::new_with_bincode(program_id1, &0, vec![AccountMeta::new(id1, true)]),
+    /// #         Instruction::new_with_bincode(program_id0, &0, vec![AccountMeta::new(id1, false)]),
+    /// #     ],
+    /// #     Some(&id1),
+    /// # );
+    /// let signers_for_msg = signer_info.signers_for_message(&message);
+    /// # assert_eq!(signers_for_msg.len(), 0);
+    /// ```
     pub fn signers_for_message(&self, message: &Message) -> Vec<&dyn Signer> {
         self.signers
             .iter()

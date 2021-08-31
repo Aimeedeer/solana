@@ -60,7 +60,6 @@ pub struct CliSignerInfo {
 }
 
 impl CliSignerInfo {
-
     /// # Examples
     ///
     /// ```

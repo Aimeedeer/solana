@@ -160,6 +160,24 @@ pub struct DefaultSigner {
 }
 
 impl DefaultSigner {
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_sdk::signature::{Signer, Keypair, write_keypair_file};
+    /// # use std::path::PathBuf;
+    /// # use solana_clap_utils::keypair::DefaultSigner;
+    /// # let keypair = Keypair::new();
+    /// # let out_dir = std::env::var("FARF_DIR").unwrap_or_else(|_| "farf".to_string());
+    /// # let keypair_file_path = format!("{}/tmp/{}-{}", out_dir, "keypair_file", keypair.pubkey());
+    /// # // whack any possible collision
+    /// # let _ignored = std::fs::remove_dir_all(&keypair_file_path);
+    /// # // whack any possible collision
+    /// # let _ignored = std::fs::remove_file(&keypair_file_path);
+    /// write_keypair_file(&keypair, &keypair_file_path).unwrap();
+    /// let signer = DefaultSigner::new("keypair", &keypair_file_path);
+    /// assert!(signer.arg_name.len() > 0);
+    /// assert_eq!(signer.path, keypair_file_path);
+    /// ```
     pub fn new<AN: AsRef<str>, P: AsRef<str>>(arg_name: AN, path: P) -> Self {
         let arg_name = arg_name.as_ref().to_string();
         let path = path.as_ref().to_string();

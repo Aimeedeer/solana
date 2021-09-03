@@ -163,20 +163,19 @@ impl DefaultSigner {
     /// # Examples
     ///
     /// ```
-    /// # use solana_sdk::signature::{Signer, Keypair, write_keypair_file};
-    /// # use std::path::PathBuf;
+    /// # use solana_sdk::signature::{Signer, Keypair};
     /// # use solana_clap_utils::keypair::DefaultSigner;
+    /// # use tempfile::TempDir;
+    /// # use std::fs;
     /// # let keypair = Keypair::new();
-    /// # let out_dir = std::env::var("FARF_DIR").unwrap_or_else(|_| "farf".to_string());
-    /// # let keypair_file_path = format!("{}/tmp/{}-{}", out_dir, "keypair_file", keypair.pubkey());
-    /// # // whack any possible collision
-    /// # let _ignored = std::fs::remove_dir_all(&keypair_file_path);
-    /// # // whack any possible collision
-    /// # let _ignored = std::fs::remove_file(&keypair_file_path);
-    /// write_keypair_file(&keypair, &keypair_file_path).unwrap();
-    /// let signer = DefaultSigner::new("keypair", &keypair_file_path);
-    /// assert!(signer.arg_name.len() > 0);
-    /// assert_eq!(signer.path, keypair_file_path);
+    /// let tmp_dir = TempDir::new().unwrap();
+    /// let file_path = tmp_dir.path().join("keypair");
+    /// fs::create_dir_all(&file_path).unwrap();
+    /// let file_path_str = file_path.to_str().unwrap();
+    ///
+    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    /// # assert!(signer.arg_name.len() > 0);
+    /// assert_eq!(signer.path, file_path_str);
     /// ```
     pub fn new<AN: AsRef<str>, P: AsRef<str>>(arg_name: AN, path: P) -> Self {
         let arg_name = arg_name.as_ref().to_string();
@@ -212,6 +211,35 @@ impl DefaultSigner {
         Ok(&self.path)
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_remote_wallet::remote_wallet::{RemoteWalletManager, initialize_wallet_manager};
+    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_clap_utils::keypair::DefaultSigner;
+    /// # use clap::ArgMatches;
+    /// # use std::{fs, error};
+    /// # use tempfile::TempDir;;
+    /// # let keypair = Keypair::new();
+    /// let tmp_dir = TempDir::new()?;
+    /// let file_path = tmp_dir.path().join("keypair");
+    /// fs::create_dir_all(&file_path)?;
+    
+    /// let file_path_str = file_path.to_str().unwrap();
+    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    ///
+    /// let bulk_signers = vec![Some(Box::new(keypair) as Box<dyn Signer>)];
+    /// let matches = ArgMatches::default();
+    /// let wallet_manager = initialize_wallet_manager()?;
+    ///
+    /// let unique_signers = signer.generate_unique_signers(
+    ///     bulk_signers,
+    ///     &matches,
+    ///     &mut Some(wallet_manager),
+    /// )?;
+    /// assert!(unique_signers.signers.len() == 1);
+    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// ```
     pub fn generate_unique_signers(
         &self,
         bulk_signers: Vec<Option<Box<dyn Signer>>>,

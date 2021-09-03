@@ -224,7 +224,7 @@ impl DefaultSigner {
     /// let tmp_dir = TempDir::new()?;
     /// let file_path = tmp_dir.path().join("keypair");
     /// fs::create_dir_all(&file_path)?;
-    
+
     /// let file_path_str = file_path.to_str().unwrap();
     /// let signer = DefaultSigner::new("keypair", &file_path_str);
     ///

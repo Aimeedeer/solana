@@ -45,10 +45,43 @@ pub struct SignOnly {
 }
 
 impl SignOnly {
+    // todo: need data for constructing `SignOnly`
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_clap_utils::keypair::SignOnly;
+    /// # use solana_sdk::hash::Hash;
+    /// let sign_only = SignOnly {
+    ///     blockhash: Hash::default(),
+    ///     message: Some(String::from("Test Message")),
+    ///     present_signers: vec![],
+    ///     absent_signers: vec![],
+    ///     bad_signers: vec![],
+    /// };
+    /// let has_signers = sign_only.has_all_signers();
+    /// assert!(has_signers);
+    /// ```
     pub fn has_all_signers(&self) -> bool {
         self.absent_signers.is_empty() && self.bad_signers.is_empty()
     }
 
+    // todo: need data for constructing `SignOnly`
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_clap_utils::keypair::SignOnly;
+    /// # use solana_sdk::hash::Hash;
+    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # let pubkey = Keypair::new().pubkey();
+    /// let sign_only = SignOnly {
+    ///     blockhash: Hash::default(),
+    ///     message: Some(String::from("Test Message")),
+    ///     present_signers: vec![],
+    ///     absent_signers: vec![],
+    ///     bad_signers: vec![],
+    /// };
+    /// let presigner = sign_only.presigner_of(&pubkey).ok_or(format!("Error when get presigner of pubkey {}", pubkey));
+    /// ```
     pub fn presigner_of(&self, pubkey: &Pubkey) -> Option<Presigner> {
         presigner_from_pubkey_sigs(pubkey, &self.present_signers)
     }
@@ -167,7 +200,7 @@ impl DefaultSigner {
     /// # use solana_clap_utils::keypair::DefaultSigner;
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use tempfile::TempDir;
-    /// # use std::{fs, error};
+    /// # use std::fs;
     /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
     /// # let dir = dir.path();
@@ -178,7 +211,7 @@ impl DefaultSigner {
     /// let signer = DefaultSigner::new("keypair", &file_path_str);
     /// # assert!(signer.arg_name.len() > 0);
     /// assert_eq!(signer.path, file_path_str);
-    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn new<AN: AsRef<str>, P: AsRef<str>>(arg_name: AN, path: P) -> Self {
         let arg_name = arg_name.as_ref().to_string();
@@ -222,7 +255,7 @@ impl DefaultSigner {
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::DefaultSigner;
     /// # use clap::ArgMatches;
-    /// # use std::{fs, error};
+    /// # use std::fs;
     /// # use tempfile::TempDir;;
     /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
@@ -242,7 +275,7 @@ impl DefaultSigner {
     ///     &mut Some(wallet_manager),
     /// )?;
     /// assert!(unique_signers.signers.len() == 1);
-    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn generate_unique_signers(
         &self,
@@ -276,7 +309,7 @@ impl DefaultSigner {
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::DefaultSigner;
     /// # use clap::ArgMatches;
-    /// # use std::{fs, error};
+    /// # use std::fs;
     /// # use tempfile::TempDir;;
     /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
@@ -292,7 +325,7 @@ impl DefaultSigner {
     ///     &matches,
     ///     &mut Some(wallet_manager),
     /// )?;
-    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn signer_from_path(
         &self,
@@ -310,7 +343,7 @@ impl DefaultSigner {
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::{DefaultSigner, SignerFromPathConfig};
     /// # use clap::ArgMatches;
-    /// # use std::{fs, error};
+    /// # use std::fs;
     /// # use tempfile::TempDir;;
     /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
@@ -330,7 +363,7 @@ impl DefaultSigner {
     ///     &mut Some(wallet_manager),
     ///     &config,
     /// )?;
-    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn signer_from_path_with_config(
         &self,

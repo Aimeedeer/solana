@@ -165,17 +165,20 @@ impl DefaultSigner {
     /// ```
     /// # use solana_sdk::signature::{Signer, Keypair};
     /// # use solana_clap_utils::keypair::DefaultSigner;
+    /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use tempfile::TempDir;
-    /// # use std::fs;
+    /// # use std::{fs, error};
     /// # let keypair = Keypair::new();
-    /// let tmp_dir = TempDir::new().unwrap();
-    /// let file_path = tmp_dir.path().join("keypair");
-    /// fs::create_dir_all(&file_path).unwrap();
+    /// # let dir = TempDir::new()?;
+    /// # let dir = dir.path();
+    /// let file_path = dir.join("keypair");
+    /// write_keypair_file(&keypair, &file_path)?;
     /// let file_path_str = file_path.to_str().unwrap();
     ///
     /// let signer = DefaultSigner::new("keypair", &file_path_str);
     /// # assert!(signer.arg_name.len() > 0);
     /// assert_eq!(signer.path, file_path_str);
+    /// # Ok::<(), Box<dyn error::Error>>(())
     /// ```
     pub fn new<AN: AsRef<str>, P: AsRef<str>>(arg_name: AN, path: P) -> Self {
         let arg_name = arg_name.as_ref().to_string();
@@ -214,17 +217,18 @@ impl DefaultSigner {
     /// # Examples
     ///
     /// ```
-    /// # use solana_remote_wallet::remote_wallet::{RemoteWalletManager, initialize_wallet_manager};
+    /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
     /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::DefaultSigner;
     /// # use clap::ArgMatches;
     /// # use std::{fs, error};
     /// # use tempfile::TempDir;;
     /// # let keypair = Keypair::new();
-    /// let tmp_dir = TempDir::new()?;
-    /// let file_path = tmp_dir.path().join("keypair");
-    /// fs::create_dir_all(&file_path)?;
-
+    /// # let dir = TempDir::new()?;
+    /// # let dir = dir.path();
+    /// let file_path = dir.join("keypair");
+    /// # write_keypair_file(&keypair, &file_path)?;
     /// let file_path_str = file_path.to_str().unwrap();
     /// let signer = DefaultSigner::new("keypair", &file_path_str);
     ///
@@ -264,6 +268,32 @@ impl DefaultSigner {
         })
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_sdk::signer::keypair::write_keypair_file;
+    /// # use solana_clap_utils::keypair::DefaultSigner;
+    /// # use clap::ArgMatches;
+    /// # use std::{fs, error};
+    /// # use tempfile::TempDir;;
+    /// # let keypair = Keypair::new();
+    /// # let dir = TempDir::new()?;
+    /// # let dir = dir.path();
+    /// let file_path = dir.join("keypair");
+    /// # write_keypair_file(&keypair, &file_path)?;
+    /// let file_path_str = file_path.to_str().unwrap();
+    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    ///
+    /// let matches = ArgMatches::default();
+    /// let wallet_manager = initialize_wallet_manager()?;
+    /// let signer_from_path = signer.signer_from_path(
+    ///     &matches,
+    ///     &mut Some(wallet_manager),
+    /// )?;
+    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// ```
     pub fn signer_from_path(
         &self,
         matches: &ArgMatches,
@@ -272,6 +302,36 @@ impl DefaultSigner {
         signer_from_path(matches, self.path()?, &self.arg_name, wallet_manager)
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_sdk::signer::keypair::write_keypair_file;
+    /// # use solana_clap_utils::keypair::{DefaultSigner, SignerFromPathConfig};
+    /// # use clap::ArgMatches;
+    /// # use std::{fs, error};
+    /// # use tempfile::TempDir;;
+    /// # let keypair = Keypair::new();
+    /// # let dir = TempDir::new()?;
+    /// # let dir = dir.path();
+    /// let file_path = dir.join("keypair");
+    /// # write_keypair_file(&keypair, &file_path)?;
+    /// let file_path_str = file_path.to_str().unwrap();
+    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    ///
+    /// let matches = ArgMatches::default();
+    /// let wallet_manager = initialize_wallet_manager()?;
+    /// let config = SignerFromPathConfig {
+    ///     allow_null_signer: false,
+    /// };
+    /// let signer_from_path = signer.signer_from_path_with_config(
+    ///     &matches,
+    ///     &mut Some(wallet_manager),
+    ///     &config,
+    /// )?;
+    /// # Ok::<(), Box<dyn error::Error>>(())
+    /// ```
     pub fn signer_from_path_with_config(
         &self,
         matches: &ArgMatches,

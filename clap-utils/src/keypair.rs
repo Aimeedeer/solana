@@ -46,6 +46,9 @@ pub struct SignOnly {
 
 impl SignOnly {
     // todo: need data for constructing `SignOnly`
+    // or there is a method
+    // `let sign_only = parse_sign_only_reply_string(&res);` 
+    // in the cli_output.rs file
     /// # Examples
     ///
     /// ```
@@ -321,7 +324,7 @@ impl DefaultSigner {
     ///
     /// let matches = ArgMatches::default();
     /// let wallet_manager = initialize_wallet_manager()?;
-    /// let signer_from_path = signer.signer_from_path(
+    /// let get_signer = signer.signer_from_path(
     ///     &matches,
     ///     &mut Some(wallet_manager),
     /// )?;
@@ -358,7 +361,7 @@ impl DefaultSigner {
     /// let config = SignerFromPathConfig {
     ///     allow_null_signer: false,
     /// };
-    /// let signer_from_path = signer.signer_from_path_with_config(
+    /// let get_signer = signer.signer_from_path_with_config(
     ///     &matches,
     ///     &mut Some(wallet_manager),
     ///     &config,
@@ -528,6 +531,33 @@ pub struct SignerFromPathConfig {
     pub allow_null_signer: bool,
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_clap_utils::keypair::signer_from_path;
+/// # use solana_sdk::signature::Keypair;
+/// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+/// # use solana_sdk::signer::keypair::write_keypair_file;
+/// # use clap::ArgMatches;
+/// # use std::fs;
+/// # use tempfile::TempDir;;
+/// # let keypair_name = String::from("keypair");
+/// # let dir = TempDir::new()?;
+/// # let dir = dir.path();
+/// let file_path = dir.join(&keypair_name);
+/// # let keypair = Keypair::new();
+/// # write_keypair_file(&keypair, &file_path)?;
+/// let file_path_str = file_path.to_str().unwrap();
+/// let matches = ArgMatches::default();
+/// let wallet_manager = initialize_wallet_manager()?;
+/// let get_signer = signer_from_path(
+///     &matches,
+///     &file_path_str,
+///     &keypair_name,
+///     &mut Some(wallet_manager),
+/// )?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn signer_from_path(
     matches: &ArgMatches,
     path: &str,
@@ -538,6 +568,37 @@ pub fn signer_from_path(
     signer_from_path_with_config(matches, path, keypair_name, wallet_manager, &config)
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_clap_utils::keypair::{signer_from_path_with_config, SignerFromPathConfig};
+/// # use solana_sdk::signature::Keypair;
+/// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+/// # use solana_sdk::signer::keypair::write_keypair_file;
+/// # use clap::ArgMatches;
+/// # use std::fs;
+/// # use tempfile::TempDir;;
+/// # let keypair_name = String::from("keypair");
+/// # let dir = TempDir::new()?;
+/// # let dir = dir.path();
+/// let file_path = dir.join(&keypair_name);
+/// # let keypair = Keypair::new();
+/// # write_keypair_file(&keypair, &file_path)?;
+/// let file_path_str = file_path.to_str().unwrap();
+/// let matches = ArgMatches::default();
+/// let wallet_manager = initialize_wallet_manager()?;
+/// let config = SignerFromPathConfig {
+///     allow_null_signer: false,
+/// };
+/// let get_signer = signer_from_path_with_config(
+///     &matches,
+///     &file_path_str,
+///     &keypair_name,
+///     &mut Some(wallet_manager),
+///     &config,
+/// )?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn signer_from_path_with_config(
     matches: &ArgMatches,
     path: &str,

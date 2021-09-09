@@ -47,7 +47,7 @@ pub struct SignOnly {
 impl SignOnly {
     // todo: need data for constructing `SignOnly`
     // or there is a method
-    // `let sign_only = parse_sign_only_reply_string(&res);` 
+    // `let sign_only = parse_sign_only_reply_string(&res);`
     // in the cli_output.rs file
     /// # Examples
     ///

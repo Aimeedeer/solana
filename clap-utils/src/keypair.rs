@@ -317,10 +317,10 @@ impl DefaultSigner {
     /// # let dir = dir.path();
     /// let keypair_path = dir.join("payer-keypair-file");
     /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
+    /// # let keypair = Keypair::new();
+    /// write_keypair_file(&keypair, &keypair_path)?;
     ///
     /// let signer = DefaultSigner::new("keypair", &keypair_path_str);
-    /// # let keypair = Keypair::new();
-    /// # write_keypair_file(&keypair, &keypair_path)?;
     ///
     /// let args = vec![
     ///     "program",
@@ -365,10 +365,10 @@ impl DefaultSigner {
     /// # let dir = dir.path();
     /// let keypair_path = dir.join("payer-keypair-file");
     /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
+    /// # let keypair = Keypair::new();
+    /// write_keypair_file(&keypair, &keypair_path)?;
     ///
     /// let signer = DefaultSigner::new("keypair", &keypair_path_str);
-    /// # let keypair = Keypair::new();
-    /// # write_keypair_file(&keypair, &keypair_path)?;
     ///
     /// let args = vec![
     ///     "program",
@@ -573,7 +573,8 @@ pub struct SignerFromPathConfig {
 /// let keypair_path = dir.join("payer-keypair-file");
 /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
 /// # let keypair = Keypair::new();
-/// # write_keypair_file(&keypair, &keypair_path)?;
+/// write_keypair_file(&keypair, &keypair_path)?;
+///
 /// let args = vec![
 ///     "program",
 ///     keypair_path_str,
@@ -621,7 +622,8 @@ pub fn signer_from_path(
 /// let keypair_path = dir.join("payer-keypair-file");
 /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
 /// # let keypair = Keypair::new();
-/// # write_keypair_file(&keypair, &keypair_path)?;
+/// write_keypair_file(&keypair, &keypair_path)?;
+///
 /// let args = vec![
 ///     "program",
 ///     keypair_path_str,

@@ -203,15 +203,14 @@ impl DefaultSigner {
     /// # use solana_clap_utils::keypair::DefaultSigner;
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use tempfile::TempDir;
-    /// # use std::fs;
-    /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
     /// # let dir = dir.path();
-    /// let file_path = dir.join("keypair");
-    /// write_keypair_file(&keypair, &file_path)?;
-    /// let file_path_str = file_path.to_str().unwrap();
+    /// let keypair_path = dir.join("payer-keypair-file");
+    /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
+    /// # let keypair = Keypair::new();
+    /// write_keypair_file(&keypair, &keypair_path)?;
     ///
-    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    /// let signer = DefaultSigner::new("keypair", &keypair_path_str);
     /// # assert!(signer.arg_name.len() > 0);
     /// assert_eq!(signer.path, file_path_str);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -250,6 +249,7 @@ impl DefaultSigner {
         Ok(&self.path)
     }
 
+    // todo
     /// # Examples
     ///
     /// ```
@@ -308,24 +308,38 @@ impl DefaultSigner {
     ///
     /// ```
     /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
-    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_sdk::signature::Keypair;
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::DefaultSigner;
-    /// # use clap::ArgMatches;
-    /// # use std::fs;
+    /// # use clap::{App, Arg, value_t_or_exit};
     /// # use tempfile::TempDir;;
-    /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
     /// # let dir = dir.path();
-    /// let file_path = dir.join("keypair");
-    /// # write_keypair_file(&keypair, &file_path)?;
-    /// let file_path_str = file_path.to_str().unwrap();
-    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    /// let keypair_path = dir.join("payer-keypair-file");
+    /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
     ///
-    /// let matches = ArgMatches::default();
+    /// let signer = DefaultSigner::new("keypair", &keypair_path_str);
+    /// # let keypair = Keypair::new();
+    /// # write_keypair_file(&keypair, &keypair_path)?;
+    ///
+    /// let args = vec![
+    ///     "program",
+    ///     keypair_path_str,
+    /// ];
+    ///
+    /// let clap_app = App::new("my-program")
+    ///     .arg(
+    ///         Arg::with_name("keypair")
+    ///             .required(true)
+    ///             .help("The signing keypair")
+    /// );
+    ///
+    /// let clap_matches = clap_app.get_matches_from(args);
+    /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
     /// let wallet_manager = initialize_wallet_manager()?;
+    ///
     /// let get_signer = signer.signer_from_path(
-    ///     &matches,
+    ///     &clap_matches,
     ///     &mut Some(wallet_manager),
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -342,27 +356,41 @@ impl DefaultSigner {
     ///
     /// ```
     /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
-    /// # use solana_sdk::signature::{Signer, Keypair};
+    /// # use solana_sdk::signature::Keypair;
     /// # use solana_sdk::signer::keypair::write_keypair_file;
     /// # use solana_clap_utils::keypair::{DefaultSigner, SignerFromPathConfig};
-    /// # use clap::ArgMatches;
-    /// # use std::fs;
+    /// # use clap::{App, Arg, value_t_or_exit};
     /// # use tempfile::TempDir;;
-    /// # let keypair = Keypair::new();
     /// # let dir = TempDir::new()?;
     /// # let dir = dir.path();
-    /// let file_path = dir.join("keypair");
-    /// # write_keypair_file(&keypair, &file_path)?;
-    /// let file_path_str = file_path.to_str().unwrap();
-    /// let signer = DefaultSigner::new("keypair", &file_path_str);
+    /// let keypair_path = dir.join("payer-keypair-file");
+    /// let keypair_path_str = keypair_path.to_str().expect("uft-8");
     ///
-    /// let matches = ArgMatches::default();
+    /// let signer = DefaultSigner::new("keypair", &keypair_path_str);
+    /// # let keypair = Keypair::new();
+    /// # write_keypair_file(&keypair, &keypair_path)?;
+    ///
+    /// let args = vec![
+    ///     "program",
+    ///     keypair_path_str,
+    /// ];
+    ///
+    /// let clap_app = App::new("my-program")
+    ///     .arg(
+    ///         Arg::with_name("keypair")
+    ///             .required(true)
+    ///             .help("The signing keypair")
+    /// );
+    ///
+    /// let clap_matches = clap_app.get_matches_from(args);
+    /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
     /// let wallet_manager = initialize_wallet_manager()?;
     /// let config = SignerFromPathConfig {
     ///     allow_null_signer: false,
     /// };
+    ///
     /// let get_signer = signer.signer_from_path_with_config(
-    ///     &matches,
+    ///     &clap_matches,
     ///     &mut Some(wallet_manager),
     ///     &config,
     /// )?;
@@ -534,26 +562,37 @@ pub struct SignerFromPathConfig {
 /// # Examples
 ///
 /// ```
-/// # use solana_clap_utils::keypair::signer_from_path;
-/// # use solana_sdk::signature::Keypair;
 /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+/// # use solana_sdk::signature::Keypair;
 /// # use solana_sdk::signer::keypair::write_keypair_file;
-/// # use clap::ArgMatches;
-/// # use std::fs;
+/// # use solana_clap_utils::keypair::{DefaultSigner, signer_from_path};
+/// # use clap::{App, Arg, value_t_or_exit};
 /// # use tempfile::TempDir;;
-/// # let keypair_name = String::from("keypair");
 /// # let dir = TempDir::new()?;
 /// # let dir = dir.path();
-/// let file_path = dir.join(&keypair_name);
+/// let keypair_path = dir.join("payer-keypair-file");
+/// let keypair_path_str = keypair_path.to_str().expect("uft-8");
 /// # let keypair = Keypair::new();
-/// # write_keypair_file(&keypair, &file_path)?;
-/// let file_path_str = file_path.to_str().unwrap();
-/// let matches = ArgMatches::default();
+/// # write_keypair_file(&keypair, &keypair_path)?;
+/// let args = vec![
+///     "program",
+///     keypair_path_str,
+/// ];
+///
+/// let clap_app = App::new("my-program")
+///     .arg(
+///         Arg::with_name("keypair")
+///             .required(true)
+///             .help("The signing keypair")
+/// );
+///
+/// let clap_matches = clap_app.get_matches_from(args);
+/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
 /// let wallet_manager = initialize_wallet_manager()?;
-/// let get_signer = signer_from_path(
-///     &matches,
-///     &file_path_str,
-///     &keypair_name,
+/// let signer = signer_from_path(
+///     &clap_matches,
+///     &keypair_str,
+///     "keypair",
 ///     &mut Some(wallet_manager),
 /// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -571,29 +610,41 @@ pub fn signer_from_path(
 /// # Examples
 ///
 /// ```
-/// # use solana_clap_utils::keypair::{signer_from_path_with_config, SignerFromPathConfig};
-/// # use solana_sdk::signature::Keypair;
 /// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+/// # use solana_sdk::signature::Keypair;
 /// # use solana_sdk::signer::keypair::write_keypair_file;
-/// # use clap::ArgMatches;
-/// # use std::fs;
+/// # use solana_clap_utils::keypair::{DefaultSigner, SignerFromPathConfig, signer_from_path_with_config};
+/// # use clap::{App, Arg, value_t_or_exit};
 /// # use tempfile::TempDir;;
-/// # let keypair_name = String::from("keypair");
 /// # let dir = TempDir::new()?;
 /// # let dir = dir.path();
-/// let file_path = dir.join(&keypair_name);
+/// let keypair_path = dir.join("payer-keypair-file");
+/// let keypair_path_str = keypair_path.to_str().expect("uft-8");
 /// # let keypair = Keypair::new();
-/// # write_keypair_file(&keypair, &file_path)?;
-/// let file_path_str = file_path.to_str().unwrap();
-/// let matches = ArgMatches::default();
+/// # write_keypair_file(&keypair, &keypair_path)?;
+/// let args = vec![
+///     "program",
+///     keypair_path_str,
+/// ];
+///
+/// let clap_app = App::new("my-program")
+///     .arg(
+///         Arg::with_name("keypair")
+///             .required(true)
+///             .help("The signing keypair")
+/// );
+///
+/// let clap_matches = clap_app.get_matches_from(args);
+/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
 /// let wallet_manager = initialize_wallet_manager()?;
 /// let config = SignerFromPathConfig {
 ///     allow_null_signer: false,
 /// };
-/// let get_signer = signer_from_path_with_config(
-///     &matches,
-///     &file_path_str,
-///     &keypair_name,
+///
+/// let signer = signer_from_path_with_config(
+///     &clap_matches,
+///     &keypair_str,
+///     "keypair",
 ///     &mut Some(wallet_manager),
 ///     &config,
 /// )?;
@@ -1062,10 +1113,10 @@ mod tests {
     #[test]
     fn signer_from_path_with_file() -> Result<(), Box<dyn std::error::Error>> {
         use crate::keypair::signer_from_path;
-        use solana_sdk::signature::Keypair;
+        use clap::{value_t_or_exit, App, Arg};
         use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
+        use solana_sdk::signature::Keypair;
         use solana_sdk::signer::keypair::write_keypair_file;
-        use clap::{App, Arg, value_t_or_exit};
         use tempfile::TempDir;
 
         let dir = TempDir::new()?;
@@ -1076,17 +1127,13 @@ mod tests {
         let keypair = Keypair::new();
         write_keypair_file(&keypair, &keypair_path)?;
 
-        let args = vec![
-            "program",
-            keypair_path_str,
-        ];
+        let args = vec!["program", keypair_path_str];
 
-        let clap_app = App::new("my-program")
-            .arg(
-                Arg::with_name("keypair")
-                    .required(true)
-                    .help("The signing keypair")
-            );
+        let clap_app = App::new("my-program").arg(
+            Arg::with_name("keypair")
+                .required(true)
+                .help("The signing keypair"),
+        );
 
         let clap_matches = clap_app.get_matches_from(args);
         let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);

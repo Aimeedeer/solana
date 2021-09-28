@@ -903,6 +903,44 @@ pub fn prompt_passphrase(prompt: &str) -> Result<String, Box<dyn error::Error>> 
 }
 
 /// Parses a path into a SignerSource and returns a Keypair for supporting SignerSourceKinds
+///
+/// # Examples
+///
+/// ```
+/// # use solana_sdk::signature::Keypair;
+/// # use solana_sdk::signer::keypair::write_keypair_file;
+/// # use solana_clap_utils::keypair::{DefaultSigner, keypair_from_path};
+/// # use clap::{App, Arg, value_t_or_exit};
+/// # use tempfile::TempDir;;
+/// # let dir = TempDir::new()?;
+/// # let dir = dir.path();
+/// let keypair_path = dir.join("payer-keypair-file");
+/// let keypair_path_str = keypair_path.to_str().expect("uft-8");
+/// # let keypair = Keypair::new();
+/// write_keypair_file(&keypair, &keypair_path)?;
+///
+/// let args = vec![
+///     "program",
+///     keypair_path_str,
+/// ];
+///
+/// let clap_app = App::new("my-program")
+///     .arg(
+///         Arg::with_name("keypair")
+///             .required(true)
+///             .help("The signing keypair")
+/// );
+///
+/// let clap_matches = clap_app.get_matches_from(args);
+/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
+/// let get_keypair = keypair_from_path(
+///     &clap_matches,
+///     &keypair_str,
+///     "keypair",
+///     true,
+/// )?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn keypair_from_path(
     matches: &ArgMatches,
     path: &str,

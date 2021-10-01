@@ -562,6 +562,105 @@ pub struct SignerFromPathConfig {
     pub allow_null_signer: bool,
 }
 
+/// Loads a [Signer] from one of several possible sources.
+///
+/// The `path` is not strictly a file system path, but is interpreted as various
+/// types of signing _source_, depending on its format, one of which is a path
+/// to a keypair file. Some sources may require user interaction in the course
+/// of calling this function.
+///
+/// The result of this method is a boxed object of the [Signer] trait. To load a
+/// concrete [Keypair], use the [keypair_from_path] function, though note that
+/// it does not support all signer sources.
+///
+/// TODO explain keypair_name, wallet_manager, matches
+///
+/// # Signing sources
+///
+/// The `path` argument can simply be a path to a keypair file, but it may also
+/// be interpreted in several other ways, in the following order.
+///
+/// Firstly, the `path` argument may be interpreted as a [URI], with the URI
+/// scheme indicating where to load the signer from. If it parses as a URI, then
+/// the following schemes are supported:
+///
+/// - `file:` &mdash; Read the keypair from a JSON keypair file. The path portion
+///    of the URI is the file path.
+///
+/// - `stdin:` &mdash; Read the keypair from stdin, in the JSON format used by
+///   the keypair file.
+///
+///   Non-scheme parts of the URI are ignored.
+///
+/// - `prompt:` &mdash; The user will be prompted at the command line
+///   for their seed phrase and passphrase.
+///
+///   In this URI the [query string][qs] may contain zero or one of the
+///   following key/value pairs that determine the [BIP44 derivation path][dp]
+///   of the private key from the seed:
+///
+///   - `key` &mdash; In this case the value is either one or two numerical
+///     indexes separated by a slash, which represent the "account", and
+///     "change" components of the BIP44 derivation path. Example: `key=0/0`.
+///
+///   - `full-path` &mdash; In this case the value is a full derivation path,
+///     and the user is responsible for ensuring it is correct. Example:
+///     `full-path=m/44/501/0/0/0`.
+///
+///   If neither is provided, then the default derivation path is used.
+///
+///   Note that when specifying derivation paths, this routine will convert all
+///   indexes into ["hardened"] indexes, even if written as "normal" indexes.
+///
+///   Other components of the URI besides the scheme and query string are ignored.
+///
+/// - `usb:` &mdash; Use a USB hardware device as the signer. In this case, the
+///   URI host indicates the device type, and is required. The only valid value
+///   is "ledger".
+///
+///   Optionally, the first segment of the URI path indicates the base-58
+///   encoded pubkey of the wallet, and the "account" and "change" indices of
+///   the derivation path can be specified with the `key=` query parameter, as
+///   with the `prompt:` URI.
+///
+///   Examples:
+///
+///   - `usb://ledger`
+///   - `usb://ledger?key=0/0`
+///   - `usb://ledger/9rPVSygg3brqghvdZ6wsL2i5YNQTGhXGdJzF65YxaCQd`
+///   - `usb://ledger/9rPVSygg3brqghvdZ6wsL2i5YNQTGhXGdJzF65YxaCQd?key=0/0`
+///
+/// Next the `path` argument may be one of the following strings:
+///
+/// - `-` &mdash; Read the keypair from stdin. This is the same as the `stdin:`
+///   URI scheme.
+///
+/// - `ASK` &mdash; The user will be prompted at the command line for their seed
+///   phrase and passphrase. _This uses a legacy key derivation method and should
+///   be avoided in favor of `prompt:`._
+///
+/// Next, if the `path` argument parses as a base-58 public key, then the signer
+/// is created without a private key, but with presigned signatures, each parsed
+/// from the additional command line arguments, provided by the `matches`
+/// argument.
+///
+/// In this case, the remaining command line arguments are searched for clap
+/// arguments named "signer", as defined by [SIGNER_ARG], and each is
+/// parsed as a key value pair of the form "pubkey=signature", where
+/// `pubkey` is the same base-58 public key, and `signature` is a serialized
+/// signature produced by the corresponding keypair.
+///
+/// TODO SIGN_ONLY_ARG and config.allow_null_signer
+///
+/// Finally, if `path`, interpreted as a file path, represents a file on disk,
+/// then the signer is created by reading that file as a JSON-serialized keypair.
+/// This is the same as the `file:` URI scheme.
+///
+/// [qs]: https://en.wikipedia.org/wiki/Query_string
+/// [dp]: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
+/// [URI]: https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+/// ["hardened"]: https://wiki.trezor.io/Hardened_and_non-hardened_derivation
+/// 
 /// # Examples
 ///
 /// ```
@@ -584,11 +683,9 @@ pub struct SignerFromPathConfig {
 /// ];
 ///
 /// let clap_app = App::new("my-program")
-///     .arg(
-///         Arg::with_name("keypair")
-///             .required(true)
-///             .help("The signing keypair")
-/// );
+///     .arg(Arg::with_name("keypair")
+///         .required(true)
+///         .help("The signing keypair"));
 ///
 /// let clap_matches = clap_app.get_matches_from(args);
 /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
@@ -902,8 +999,6 @@ pub fn prompt_passphrase(prompt: &str) -> Result<String, Box<dyn error::Error>> 
     Ok(passphrase)
 }
 
-/// Parses a path into a SignerSource and returns a Keypair for supporting SignerSourceKinds
-///
 /// # Examples
 ///
 /// ```

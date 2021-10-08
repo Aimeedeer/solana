@@ -1325,13 +1325,14 @@ mod tests {
 
     #[test]
     fn signer_from_path_with_file() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::offline::OfflineArgs;
         use crate::keypair::signer_from_path;
         use clap::{value_t_or_exit, App, Arg};
         use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
         use solana_sdk::signature::Keypair;
         use solana_sdk::signer::keypair::write_keypair_file;
         use tempfile::TempDir;
-
+        
         let dir = TempDir::new()?;
         let dir = dir.path();
         let keypair_path = dir.join("id.json");
@@ -1340,11 +1341,11 @@ mod tests {
         let keypair = Keypair::new();
         write_keypair_file(&keypair, &keypair_path)?;
 
-        let args = vec!["program", "--signer", keypair_path_str];
+        let args = vec!["program", keypair_path_str];
 
         let clap_app = App::new("my-program")
             .arg(Arg::with_name("keypair")
-                 .long("keypair")
+//                 .long("keypair")
                  .required(true)
                  .help("The signing keypair"))
             .offline_args();

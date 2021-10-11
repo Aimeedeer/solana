@@ -660,7 +660,7 @@ pub struct SignerFromPathConfig {
 /// [dp]: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 /// [URI]: https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
 /// ["hardened"]: https://wiki.trezor.io/Hardened_and_non-hardened_derivation
-/// 
+///
 /// # Examples
 ///
 /// This shows a reasonable way to set up clap to parse all possible signer
@@ -707,34 +707,22 @@ pub fn signer_from_path(
 
 /// # Examples
 ///
-/// ```
-/// # use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
-/// # use solana_sdk::signature::Keypair;
-/// # use solana_sdk::signer::keypair::write_keypair_file;
-/// # use solana_clap_utils::keypair::{DefaultSigner, SignerFromPathConfig, signer_from_path_with_config};
-/// # use clap::{App, Arg, value_t_or_exit};
-/// # use tempfile::TempDir;;
-/// # let dir = TempDir::new()?;
-/// # let dir = dir.path();
-/// let keypair_path = dir.join("payer-keypair-file");
-/// let keypair_path_str = keypair_path.to_str().expect("uft-8");
-/// # let keypair = Keypair::new();
-/// write_keypair_file(&keypair, &keypair_path)?;
-///
-/// let args = vec![
-///     "program",
-///     keypair_path_str,
-/// ];
+/// ```no_run
+/// use clap::{App, Arg, value_t};
+/// use solana_clap_utils::keypair::{signer_from_path_with_config, SignerFromPathConfig};
+/// use solana_clap_utils::offline::OfflineArgs;
+/// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
 ///
 /// let clap_app = App::new("my-program")
-///     .arg(
-///         Arg::with_name("keypair")
-///             .required(true)
-///             .help("The signing keypair")
-/// );
+///     // The argument we'll parse as a signer "path"
+///     .arg(Arg::with_name("from")
+///         .required(true)
+///         .help("The signer"))
+///     .offline_args();
 ///
-/// let clap_matches = clap_app.get_matches_from(args);
-/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
+/// let clap_matches = clap_app.get_matches();
+/// let keypair_str = value_t!(clap_matches, "from", String)
+///     .unwrap_or_else(|e| e.exit());
 /// let wallet_manager = initialize_wallet_manager()?;
 /// let config = SignerFromPathConfig {
 ///     allow_null_signer: false,
@@ -743,7 +731,7 @@ pub fn signer_from_path(
 /// let signer = signer_from_path_with_config(
 ///     &clap_matches,
 ///     &keypair_str,
-///     "keypair",
+///     "signer",
 ///     &mut Some(wallet_manager),
 ///     &config,
 /// )?;
@@ -1325,14 +1313,14 @@ mod tests {
 
     #[test]
     fn signer_from_path_with_file() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::offline::OfflineArgs;
         use crate::keypair::signer_from_path;
+        use crate::offline::OfflineArgs;
         use clap::{value_t_or_exit, App, Arg};
         use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
         use solana_sdk::signature::Keypair;
         use solana_sdk::signer::keypair::write_keypair_file;
         use tempfile::TempDir;
-        
+
         let dir = TempDir::new()?;
         let dir = dir.path();
         let keypair_path = dir.join("id.json");
@@ -1344,10 +1332,12 @@ mod tests {
         let args = vec!["program", keypair_path_str];
 
         let clap_app = App::new("my-program")
-            .arg(Arg::with_name("keypair")
-//                 .long("keypair")
-                 .required(true)
-                 .help("The signing keypair"))
+            .arg(
+                Arg::with_name("keypair")
+                    //                 .long("keypair")
+                    .required(true)
+                    .help("The signing keypair"),
+            )
             .offline_args();
 
         let clap_matches = clap_app.get_matches_from(args);

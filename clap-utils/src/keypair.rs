@@ -671,26 +671,25 @@ pub struct SignerFromPathConfig {
 /// [`OfflineArgs::offline_args`]: crate::offline::OfflineArgs::offline_args
 ///
 /// ```no_run
-/// use clap::{App, Arg, value_t};
+/// use clap::{App, Arg, value_t_or_exit};
 /// use solana_clap_utils::keypair::signer_from_path;
 /// use solana_clap_utils::offline::OfflineArgs;
 /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
 ///
 /// let clap_app = App::new("my-program")
 ///     // The argument we'll parse as a signer "path"
-///     .arg(Arg::with_name("from")
+///     .arg(Arg::with_name("keypair")
 ///         .required(true)
-///         .help("The signer"))
+///         .help("The default signer"))
 ///     .offline_args();
 ///
 /// let clap_matches = clap_app.get_matches();
-/// let keypair_str = value_t!(clap_matches, "from", String)
-///     .unwrap_or_else(|e| e.exit());
+/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
 /// let wallet_manager = initialize_wallet_manager()?;
 /// let signer = signer_from_path(
 ///     &clap_matches,
 ///     &keypair_str,
-///     "signer",
+///     "keypair",
 ///     &mut Some(wallet_manager),
 /// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -707,31 +706,39 @@ pub fn signer_from_path(
 
 /// # Examples
 ///
+/// This shows a reasonable way to set up clap to parse all possible signer
+/// sources. Note the use of the [`OfflineArgs::offline_args`] method to
+/// add correct clap definitions of the `--signer` and `--signe-only`
+/// arguments, as required by the base-58 pubkey offline signing method.
+///
+/// [`OfflineArgs::offline_args`]: crate::offline::OfflineArgs::offline_args
+///
 /// ```no_run
-/// use clap::{App, Arg, value_t};
+/// use clap::{App, Arg, value_t_or_exit};
 /// use solana_clap_utils::keypair::{signer_from_path_with_config, SignerFromPathConfig};
 /// use solana_clap_utils::offline::OfflineArgs;
 /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
 ///
 /// let clap_app = App::new("my-program")
 ///     // The argument we'll parse as a signer "path"
-///     .arg(Arg::with_name("from")
+///     .arg(Arg::with_name("keypair")
 ///         .required(true)
-///         .help("The signer"))
+///         .help("The default signer"))
 ///     .offline_args();
 ///
 /// let clap_matches = clap_app.get_matches();
-/// let keypair_str = value_t!(clap_matches, "from", String)
-///     .unwrap_or_else(|e| e.exit());
+/// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
 /// let wallet_manager = initialize_wallet_manager()?;
+///
+/// // Allow pubkey signers without accompanying signatures
 /// let config = SignerFromPathConfig {
-///     allow_null_signer: false,
+///     allow_null_signer: true,
 /// };
 ///
 /// let signer = signer_from_path_with_config(
 ///     &clap_matches,
 ///     &keypair_str,
-///     "signer",
+///     "keypair",
 ///     &mut Some(wallet_manager),
 ///     &config,
 /// )?;

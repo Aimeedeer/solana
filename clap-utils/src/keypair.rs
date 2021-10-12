@@ -202,7 +202,6 @@ impl DefaultSigner {
     /// use clap::{App, Arg, value_t_or_exit};
     /// use solana_clap_utils::keypair::DefaultSigner;
     /// use solana_clap_utils::offline::OfflineArgs;
-    /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
     ///
     /// let clap_app = App::new("my-program")
     ///     // The argument we'll parse as a signer "path"
@@ -259,7 +258,6 @@ impl DefaultSigner {
     /// use clap::{App, Arg, value_t_or_exit};
     /// use solana_clap_utils::keypair::DefaultSigner;
     /// use solana_clap_utils::offline::OfflineArgs;
-    /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
     /// use solana_sdk::signer::Signer;
     /// # use solana_sdk::signature::Keypair;
     ///
@@ -273,7 +271,7 @@ impl DefaultSigner {
     /// let clap_matches = clap_app.get_matches();
     /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
     /// let default_signer = DefaultSigner::new("keypair", &keypair_str);
-    /// let wallet_manager = initialize_wallet_manager()?;
+    /// let mut wallet_manager = None;
     ///
     /// # let some_keypair = Keypair::new();
     /// let bulk_signers = vec![Some(Box::new(some_keypair) as Box<dyn Signer>)];
@@ -281,7 +279,7 @@ impl DefaultSigner {
     /// let unique_signers = default_signer.generate_unique_signers(
     ///     bulk_signers,
     ///     &clap_matches,
-    ///     &mut Some(wallet_manager),
+    ///     &mut wallet_manager,
     /// )?;
     /// assert!(unique_signers.signers.len() == 1);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -316,7 +314,6 @@ impl DefaultSigner {
     /// use clap::{App, Arg, value_t_or_exit};
     /// use solana_clap_utils::keypair::DefaultSigner;
     /// use solana_clap_utils::offline::OfflineArgs;
-    /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
     ///
     /// let clap_app = App::new("my-program")
     ///     // The argument we'll parse as a signer "path"
@@ -328,11 +325,11 @@ impl DefaultSigner {
     /// let clap_matches = clap_app.get_matches();
     /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
     /// let default_signer = DefaultSigner::new("keypair", &keypair_str);
-    /// let wallet_manager = initialize_wallet_manager()?;
+    /// let mut wallet_manager = None;
     ///
     /// let signer = default_signer.signer_from_path(
     ///     &clap_matches,
-    ///     &mut Some(wallet_manager),
+    ///     &mut wallet_manager,
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -350,7 +347,6 @@ impl DefaultSigner {
     /// use clap::{App, Arg, value_t_or_exit};
     /// use solana_clap_utils::keypair::{SignerFromPathConfig, DefaultSigner};
     /// use solana_clap_utils::offline::OfflineArgs;
-    /// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
     ///
     /// let clap_app = App::new("my-program")
     ///     // The argument we'll parse as a signer "path"
@@ -362,7 +358,7 @@ impl DefaultSigner {
     /// let clap_matches = clap_app.get_matches();
     /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
     /// let default_signer = DefaultSigner::new("keypair", &keypair_str);
-    /// let wallet_manager = initialize_wallet_manager()?;
+    /// let mut wallet_manager = None;
     ///
     /// // Allow pubkey signers without accompanying signatures
     /// let config = SignerFromPathConfig {
@@ -371,7 +367,7 @@ impl DefaultSigner {
     ///
     /// let signer = default_signer.signer_from_path_with_config(
     ///     &clap_matches,
-    ///     &mut Some(wallet_manager),
+    ///     &mut wallet_manager,
     ///     &config,
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -651,7 +647,6 @@ pub struct SignerFromPathConfig {
 /// use clap::{App, Arg, value_t_or_exit};
 /// use solana_clap_utils::keypair::signer_from_path;
 /// use solana_clap_utils::offline::OfflineArgs;
-/// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
 ///
 /// let clap_app = App::new("my-program")
 ///     // The argument we'll parse as a signer "path"
@@ -662,12 +657,12 @@ pub struct SignerFromPathConfig {
 ///
 /// let clap_matches = clap_app.get_matches();
 /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
-/// let wallet_manager = initialize_wallet_manager()?;
+/// let mut wallet_manager = None;
 /// let signer = signer_from_path(
 ///     &clap_matches,
 ///     &keypair_str,
 ///     "keypair",
-///     &mut Some(wallet_manager),
+///     &mut wallet_manager,
 /// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
@@ -694,7 +689,6 @@ pub fn signer_from_path(
 /// use clap::{App, Arg, value_t_or_exit};
 /// use solana_clap_utils::keypair::{signer_from_path_with_config, SignerFromPathConfig};
 /// use solana_clap_utils::offline::OfflineArgs;
-/// use solana_remote_wallet::remote_wallet::initialize_wallet_manager;
 ///
 /// let clap_app = App::new("my-program")
 ///     // The argument we'll parse as a signer "path"
@@ -705,7 +699,7 @@ pub fn signer_from_path(
 ///
 /// let clap_matches = clap_app.get_matches();
 /// let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
-/// let wallet_manager = initialize_wallet_manager()?;
+/// let mut wallet_manager = None;
 ///
 /// // Allow pubkey signers without accompanying signatures
 /// let config = SignerFromPathConfig {
@@ -716,7 +710,7 @@ pub fn signer_from_path(
 ///     &clap_matches,
 ///     &keypair_str,
 ///     "keypair",
-///     &mut Some(wallet_manager),
+///     &mut wallet_manager,
 ///     &config,
 /// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())

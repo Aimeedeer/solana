@@ -202,6 +202,83 @@ impl Pubkey {
     /// the same program id.  Since the change of collision is local to a given
     /// program id the developer of that program must take care to choose seeds
     /// that do not collide with themselves.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     account_info::AccountInfo,
+    /// # };
+    /// # let p = Pubkey::new_unique();
+    /// # let l = &mut 0;
+    /// # let d = &mut [0u8];
+    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
+    /// # let program_id = Pubkey::new_unique();
+    /// let vault_pubkey = Pubkey::create_program_address(
+    ///     &[b"vault", payer.key.as_ref()],
+    ///     &program_id,
+    /// );
+    /// ```
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     entrypoint::ProgramResult,
+    /// #     program_error::ProgramError,
+    /// #     program::invoke_signed,
+    /// #     system_instruction,
+    /// #     account_info::{
+    /// #         AccountInfo,
+    /// #         next_account_info,
+    /// #     },
+    /// # };
+    /// fn process_instruction(
+    ///     program_id: &Pubkey,
+    ///     accounts: &[AccountInfo],
+    ///     _input: &[u8],
+    /// ) -> ProgramResult {
+    ///     let account_info_iter = &mut accounts.iter();
+    ///     let payer = next_account_info(account_info_iter)?;
+    ///     let vault = next_account_info(account_info_iter)?;
+    ///
+    ///     let lamports = 1000;
+    ///     invoke_signed(
+    ///         &system_instruction::create_account(
+    ///             &payer.key,
+    ///             &vault.key,
+    ///             lamports,
+    ///             0,
+    ///             &program_id,
+    ///         ),
+    ///         &[
+    ///             payer.clone(),
+    ///             vault.clone(),
+    ///         ],
+    ///         &[
+    ///             &[
+    ///                 b"vault",
+    ///                 payer.key.as_ref(),
+    ///             ],
+    ///         ]
+    ///     )?;
+    ///
+    ///     Ok(())
+    /// }
+    ///
+    /// # let p = Pubkey::new_unique();
+    /// # let l = &mut 0;
+    /// # let d = &mut [0u8];
+    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
+    /// # let accounts = vec![payer.clone(), payer];
+    /// # process_instruction(
+    /// #    &Pubkey::new_unique(),
+    /// #    &accounts,
+    /// #    &vec![],
+    /// # )?;
+    /// # Ok::<(), ProgramError>(())
+    /// ```
     pub fn create_program_address(
         seeds: &[&[u8]],
         program_id: &Pubkey,

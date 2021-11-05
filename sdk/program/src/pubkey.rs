@@ -378,6 +378,7 @@ impl Pubkey {
     /// # use solana_program::{
     /// #     pubkey::Pubkey,
     /// #     entrypoint::ProgramResult,
+    /// #     program_error::ProgramError,
     /// #     program::invoke_signed,
     /// #     system_instruction,
     /// #     account_info::{
@@ -427,6 +428,17 @@ impl Pubkey {
     /// struct Instruction {
     ///     pub vault_bump_seed: u8,
     /// }
+    /// # let p = Pubkey::new_unique();
+    /// # let l = &mut 0;
+    /// # let d = &mut [0u8];
+    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
+    /// # let accounts = vec![payer.clone(), payer];
+    /// # process_instruction(
+    /// #    &Pubkey::new_unique(),
+    /// #    &accounts,
+    /// #    &vec![std::u8::MAX],
+    /// # )?;
+    /// # Ok::<(), ProgramError>(())
     /// ```
     pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
         Self::try_find_program_address(seeds, program_id)

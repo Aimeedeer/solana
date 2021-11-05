@@ -352,6 +352,82 @@ impl Pubkey {
     /// of exceeding their compute budget should also call this with care since
     /// there is a chance that the program's budget may be occasionally
     /// exceeded.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     account_info::AccountInfo,
+    /// # };
+    /// # let p = Pubkey::new_unique();
+    /// # let l = &mut 0;
+    /// # let d = &mut [0u8];
+    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
+    /// # let program_id = Pubkey::new_unique();
+    /// let (vault_pubkey, vault_bump_seed) = Pubkey::find_program_address(
+    ///     &[b"vault", payer.key.as_ref()],
+    ///     &program_id,
+    /// );
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use borsh::{BorshSerialize, BorshDeserialize};
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     entrypoint::ProgramResult,
+    /// #     program::invoke_signed,
+    /// #     system_instruction,
+    /// #     account_info::{
+    /// #         AccountInfo,
+    /// #         next_account_info,
+    /// #     },
+    /// # };
+    /// fn process_instruction(
+    ///     program_id: &Pubkey,
+    ///     accounts: &[AccountInfo],
+    ///     instruction_data: &[u8],
+    /// ) -> ProgramResult {
+    ///     let account_info_iter = &mut accounts.iter();
+    ///     let payer = next_account_info(account_info_iter)?;
+    ///     let vault = next_account_info(account_info_iter)?;
+    ///
+    ///     let mut instruction_data = instruction_data;
+    ///     let instr = Instruction::deserialize(&mut instruction_data)?;
+    ///     let vault_bump_seed = instr.vault_bump_seed;
+    ///
+    ///     let lamports = 1000;
+    ///     invoke_signed(
+    ///         &system_instruction::create_account(
+    ///             &payer.key,
+    ///             &vault.key,
+    ///             lamports,
+    ///             0,
+    ///             &program_id,
+    ///         ),
+    ///         &[
+    ///             payer.clone(),
+    ///             vault.clone(),
+    ///         ],
+    ///         &[
+    ///             &[
+    ///                 b"vault",
+    ///                 payer.key.as_ref(),
+    ///                 &[vault_bump_seed],
+    ///             ],
+    ///         ]
+    ///     )?;
+    ///
+    ///     Ok(())
+    /// }
+    ///
+    /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+    /// struct Instruction {
+    ///     pub vault_bump_seed: u8,
+    /// }
+    /// ```
     pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
         Self::try_find_program_address(seeds, program_id)
             .unwrap_or_else(|| panic!("Unable to find a viable program address bump seed"))

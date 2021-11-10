@@ -202,83 +202,6 @@ impl Pubkey {
     /// the same program id.  Since the change of collision is local to a given
     /// program id the developer of that program must take care to choose seeds
     /// that do not collide with themselves.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use solana_program::{
-    /// #     pubkey::Pubkey,
-    /// #     account_info::AccountInfo,
-    /// # };
-    /// # let p = Pubkey::new_unique();
-    /// # let l = &mut 0;
-    /// # let d = &mut [0u8];
-    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
-    /// # let program_id = Pubkey::new_unique();
-    /// let vault_pubkey = Pubkey::create_program_address(
-    ///     &[b"vault", payer.key.as_ref()],
-    ///     &program_id,
-    /// );
-    /// ```
-    /// # Examples
-    ///
-    /// ```
-    /// # use solana_program::{
-    /// #     pubkey::Pubkey,
-    /// #     entrypoint::ProgramResult,
-    /// #     program_error::ProgramError,
-    /// #     program::invoke_signed,
-    /// #     system_instruction,
-    /// #     account_info::{
-    /// #         AccountInfo,
-    /// #         next_account_info,
-    /// #     },
-    /// # };
-    /// fn process_instruction(
-    ///     program_id: &Pubkey,
-    ///     accounts: &[AccountInfo],
-    ///     _input: &[u8],
-    /// ) -> ProgramResult {
-    ///     let account_info_iter = &mut accounts.iter();
-    ///     let payer = next_account_info(account_info_iter)?;
-    ///     let vault = next_account_info(account_info_iter)?;
-    ///
-    ///     let lamports = 1000;
-    ///     invoke_signed(
-    ///         &system_instruction::create_account(
-    ///             &payer.key,
-    ///             &vault.key,
-    ///             lamports,
-    ///             0,
-    ///             &program_id,
-    ///         ),
-    ///         &[
-    ///             payer.clone(),
-    ///             vault.clone(),
-    ///         ],
-    ///         &[
-    ///             &[
-    ///                 b"vault",
-    ///                 payer.key.as_ref(),
-    ///             ],
-    ///         ]
-    ///     )?;
-    ///
-    ///     Ok(())
-    /// }
-    ///
-    /// # let p = Pubkey::new_unique();
-    /// # let l = &mut 0;
-    /// # let d = &mut [0u8];
-    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
-    /// # let accounts = vec![payer.clone(), payer];
-    /// # process_instruction(
-    /// #    &Pubkey::new_unique(),
-    /// #    &accounts,
-    /// #    &vec![],
-    /// # )?;
-    /// # Ok::<(), ProgramError>(())
-    /// ```
     pub fn create_program_address(
         seeds: &[&[u8]],
         program_id: &Pubkey,
@@ -352,24 +275,24 @@ impl Pubkey {
     /// of exceeding their compute budget should also call this with care since
     /// there is a chance that the program's budget may be occasionally
     /// exceeded.
+    pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
+        Self::try_find_program_address(seeds, program_id)
+            .unwrap_or_else(|| panic!("Unable to find a viable program address bump seed"))
+    }
+
+    /// Find a valid program address and its corresponding bump seed which must
+    /// be passed as an additional seed when calling `invoke_signed`.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use solana_program::{
-    /// #     pubkey::Pubkey,
-    /// #     account_info::AccountInfo,
-    /// # };
-    /// # let p = Pubkey::new_unique();
-    /// # let l = &mut 0;
-    /// # let d = &mut [0u8];
-    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
-    /// # let program_id = Pubkey::new_unique();
-    /// let (vault_pubkey, vault_bump_seed) = Pubkey::find_program_address(
-    ///     &[b"vault", payer.key.as_ref()],
-    ///     &program_id,
-    /// );
-    /// ```
+    /// The processes of finding a valid program address is by trial and error,
+    /// and even though it is deterministic given a set of inputs it can take a
+    /// variable amount of time to succeed across different inputs.  This means
+    /// that when called from an on-chain program it may incur a variable amount
+    /// of the program's compute budget.  Programs that are meant to be very
+    /// performant may not want to use this function because it could take a
+    /// considerable amount of time.  Also, programs that area already at risk
+    /// of exceeding their compute budget should also call this with care since
+    /// there is a chance that the program's budget may be occasionally
+    /// exceeded.
     ///
     /// # Examples
     ///
@@ -396,10 +319,10 @@ impl Pubkey {
     ///     let vault = next_account_info(account_info_iter)?;
     ///
     ///     let mut instruction_data = instruction_data;
-    ///     let instr = Instruction::deserialize(&mut instruction_data)?;
+    ///     let instr = InstructionData::deserialize(&mut instruction_data)?;
     ///     let vault_bump_seed = instr.vault_bump_seed;
+    ///     let lamports = instr.lamports;
     ///
-    ///     let lamports = 1000;
     ///     invoke_signed(
     ///         &system_instruction::create_account(
     ///             &payer.key,
@@ -424,40 +347,45 @@ impl Pubkey {
     ///     Ok(())
     /// }
     ///
-    /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
-    /// struct Instruction {
-    ///     pub vault_bump_seed: u8,
+    /// pub fn vault_pda(program_id: &Pubkey, payer: &Pubkey) -> (Pubkey, u8) {
+    ///     let vault_seeds = &[b"vault", payer.as_ref()];
+    ///     let (vault, vault_bump_seed) = Pubkey::find_program_address(vault_seeds, program_id);
+    ///
+    ///     (vault, vault_bump_seed)
     /// }
+    ///
+    /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+    /// struct InstructionData {
+    ///     pub vault_bump_seed: u8,
+    ///     pub lamports: u64,
+    /// }
+    ///
+    /// # let program_id = Pubkey::new_unique();
+    /// # let payer_pubkey = Pubkey::new_unique();
+    /// // off-chain client call
+    /// let (vault_pubkey, vault_bump_seed) = vault_pda(
+    ///     &program_id,
+    ///     &payer_pubkey,
+    /// );
+    ///
     /// # let p = Pubkey::new_unique();
     /// # let l = &mut 0;
     /// # let d = &mut [0u8];
     /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
     /// # let accounts = vec![payer.clone(), payer];
+    /// # let instr_data = InstructionData {
+    /// #     vault_bump_seed: u8::MAX,
+    /// #     lamports: 1000,
+    /// # };
+    /// # let mut buffer: Vec<u8> = Vec::new();
+    /// # instr_data.serialize(&mut buffer)?;
     /// # process_instruction(
-    /// #    &Pubkey::new_unique(),
+    /// #    &program_id,
     /// #    &accounts,
-    /// #    &vec![std::u8::MAX],
+    /// #    &buffer,
     /// # )?;
     /// # Ok::<(), ProgramError>(())
     /// ```
-    pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
-        Self::try_find_program_address(seeds, program_id)
-            .unwrap_or_else(|| panic!("Unable to find a viable program address bump seed"))
-    }
-
-    /// Find a valid program address and its corresponding bump seed which must
-    /// be passed as an additional seed when calling `invoke_signed`.
-    ///
-    /// The processes of finding a valid program address is by trial and error,
-    /// and even though it is deterministic given a set of inputs it can take a
-    /// variable amount of time to succeed across different inputs.  This means
-    /// that when called from an on-chain program it may incur a variable amount
-    /// of the program's compute budget.  Programs that are meant to be very
-    /// performant may not want to use this function because it could take a
-    /// considerable amount of time.  Also, programs that area already at risk
-    /// of exceeding their compute budget should also call this with care since
-    /// there is a chance that the program's budget may be occasionally
-    /// exceeded.
     #[allow(clippy::same_item_push)]
     pub fn try_find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Option<(Pubkey, u8)> {
         // Perform the calculation inline, calling this from within a program is

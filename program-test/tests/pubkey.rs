@@ -1,4 +1,4 @@
-use {
+use {    
     solana_program_test::{processor, ProgramTest},
     solana_sdk::{
         account_info::{next_account_info, AccountInfo},
@@ -13,11 +13,10 @@ use {
     },
 };
     
-// Process instruction to invoke into another program
-fn invoker_process_instruction(
+fn invoker_process_instruction_create_program_address(
     _program_id: &Pubkey,
     accounts: &[AccountInfo],
-    _input: &[u8],
+    instruction_data: &[u8],
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let payer = next_account_info(account_info_iter)?;
@@ -47,6 +46,41 @@ fn invoker_process_instruction(
     Ok(())
 }
 
+fn invoker_process_instruction_find_program_address(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    vault_bump_seed: &[u8],
+) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let payer = next_account_info(account_info_iter)?;
+    let vault = next_account_info(account_info_iter)?;
+
+    let lamports = 1000;
+    invoke_signed(
+        &system_instruction::create_account(
+            &payer.key,
+            &vault.key,
+            lamports,
+            0,
+            &_program_id,
+        ),
+        &[
+            payer.clone(),
+            vault.clone(),
+        ],
+        &[
+            &[
+                b"vault",
+                payer.key.as_ref(),
+                vault_bump_seed,
+            ],
+        ]
+    )?;
+    
+    Ok(())
+}
+
+
 // Process instruction to be invoked by another program
 #[allow(clippy::unnecessary_wraps)]
 fn invoked_process_instruction(
@@ -65,8 +99,9 @@ async fn cpi() {
     let mut program_test = ProgramTest::new(
         "invoker",
         invoker_program_id,
-        processor!(invoker_process_instruction),
+        processor!(invoker_process_instruction_create_program_address),
     );
+    
     let invoked_program_id = Pubkey::new_unique();
     program_test.add_program(
         "invoked",

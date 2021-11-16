@@ -1,4 +1,5 @@
-use {    
+use {
+    borsh::{BorshSerialize, BorshDeserialize},
     solana_program_test::{processor, ProgramTest},
     solana_sdk::{
         account_info::{next_account_info, AccountInfo},
@@ -10,110 +11,97 @@ use {
         transaction::Transaction,
         program::invoke_signed,
         system_instruction,
+        system_program,
     },
 };
-    
-fn invoker_process_instruction_create_program_address(
-    _program_id: &Pubkey,
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+struct InstructionData {
+    pub vault_bump_seed: u8,
+    pub lamports: u64,
+}
+
+fn invoked_process_instruction_find_program_address(
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
+    msg!("Before processing!");
     let account_info_iter = &mut accounts.iter();
     let payer = next_account_info(account_info_iter)?;
     let vault = next_account_info(account_info_iter)?;
+    let sys_program = next_account_info(account_info_iter)?;
 
-    let lamports = 1000;
+    let mut instruction_data = instruction_data;
+    let instr = InstructionData::deserialize(&mut instruction_data)?;
+    let vault_bump_seed = instr.vault_bump_seed;
+    let lamports = instr.lamports;
+
+    msg!("Before invoke_signed");
+    
     invoke_signed(
         &system_instruction::create_account(
             &payer.key,
             &vault.key,
             lamports,
             0,
-            &_program_id,
+            &program_id,
         ),
         &[
             payer.clone(),
             vault.clone(),
+            sys_program.clone(),
         ],
         &[
             &[
                 b"vault",
                 payer.key.as_ref(),
+                &[vault_bump_seed],
             ],
         ]
     )?;
-    
+
+    msg!("Processed invoked instruction");
     Ok(())
 }
 
-fn invoker_process_instruction_find_program_address(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo],
-    vault_bump_seed: &[u8],
-) -> ProgramResult {
-    let account_info_iter = &mut accounts.iter();
-    let payer = next_account_info(account_info_iter)?;
-    let vault = next_account_info(account_info_iter)?;
+pub fn vault_pda(program_id: &Pubkey, payer: &Pubkey) -> (Pubkey, u8) {
+    let vault_seeds = &[b"vault", payer.as_ref()];
+    let (vault, vault_bump_seed) = Pubkey::find_program_address(vault_seeds, program_id);
 
-    let lamports = 1000;
-    invoke_signed(
-        &system_instruction::create_account(
-            &payer.key,
-            &vault.key,
-            lamports,
-            0,
-            &_program_id,
-        ),
-        &[
-            payer.clone(),
-            vault.clone(),
-        ],
-        &[
-            &[
-                b"vault",
-                payer.key.as_ref(),
-                vault_bump_seed,
-            ],
-        ]
-    )?;
-    
-    Ok(())
-}
-
-
-// Process instruction to be invoked by another program
-#[allow(clippy::unnecessary_wraps)]
-fn invoked_process_instruction(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
-    _input: &[u8],
-) -> ProgramResult {
-    // if we can call `msg!` successfully, then InvokeContext exists as required
-    msg!("Processing invoked instruction");
-    Ok(())
+    (vault, vault_bump_seed)
 }
 
 #[tokio::test]
-async fn cpi() {
-    let invoker_program_id = Pubkey::new_unique();
-    let mut program_test = ProgramTest::new(
-        "invoker",
-        invoker_program_id,
-        processor!(invoker_process_instruction_create_program_address),
-    );
-    
+async fn invoke_program() {
     let invoked_program_id = Pubkey::new_unique();
-    program_test.add_program(
+    let program_test = ProgramTest::new(
         "invoked",
         invoked_program_id,
-        processor!(invoked_process_instruction),
+        processor!(invoked_process_instruction_find_program_address),
     );
 
     let mut context = program_test.start_with_context().await;
-    let instructions = vec![Instruction::new_with_bincode(
-        invoker_program_id,
-        &[0],
-        vec![AccountMeta::new_readonly(invoked_program_id, false)],
+    let (vault_pubkey, vault_bump_seed) = vault_pda(
+        &invoked_program_id,
+        &context.payer.pubkey(),
+    );
+  
+    let instruction_data = InstructionData {
+        vault_bump_seed,
+        lamports: 1000,
+    };
+    let mut instr_buffer: Vec<u8> = Vec::new();
+    instruction_data.serialize(&mut instr_buffer).unwrap();
+
+    let instructions = vec![Instruction::new_with_bytes(
+        invoked_program_id,
+        &instr_buffer,
+        vec![
+            AccountMeta::new(context.payer.pubkey().clone(), true), 
+            AccountMeta::new(vault_pubkey, false), 
+            AccountMeta::new(system_program::ID, false), 
+        ],
     )];
 
     let transaction = Transaction::new_signed_with_payer(

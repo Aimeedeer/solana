@@ -275,24 +275,6 @@ impl Pubkey {
     /// of exceeding their compute budget should also call this with care since
     /// there is a chance that the program's budget may be occasionally
     /// exceeded.
-    pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
-        Self::try_find_program_address(seeds, program_id)
-            .unwrap_or_else(|| panic!("Unable to find a viable program address bump seed"))
-    }
-
-    /// Find a valid program address and its corresponding bump seed which must
-    /// be passed as an additional seed when calling `invoke_signed`.
-    ///
-    /// The processes of finding a valid program address is by trial and error,
-    /// and even though it is deterministic given a set of inputs it can take a
-    /// variable amount of time to succeed across different inputs.  This means
-    /// that when called from an on-chain program it may incur a variable amount
-    /// of the program's compute budget.  Programs that are meant to be very
-    /// performant may not want to use this function because it could take a
-    /// considerable amount of time.  Also, programs that area already at risk
-    /// of exceeding their compute budget should also call this with care since
-    /// there is a chance that the program's budget may be occasionally
-    /// exceeded.
     ///
     /// # Examples
     ///
@@ -301,7 +283,6 @@ impl Pubkey {
     /// # use solana_program::{
     /// #     pubkey::Pubkey,
     /// #     entrypoint::ProgramResult,
-    /// #     program_error::ProgramError,
     /// #     program::invoke_signed,
     /// #     system_instruction,
     /// #     account_info::{
@@ -322,13 +303,14 @@ impl Pubkey {
     ///     let instr = InstructionData::deserialize(&mut instruction_data)?;
     ///     let vault_bump_seed = instr.vault_bump_seed;
     ///     let lamports = instr.lamports;
+    ///     let vault_size = 1024;
     ///
     ///     invoke_signed(
     ///         &system_instruction::create_account(
     ///             &payer.key,
     ///             &vault.key,
     ///             lamports,
-    ///             0,
+    ///             vault_size,
     ///             &program_id,
     ///         ),
     ///         &[
@@ -347,45 +329,85 @@ impl Pubkey {
     ///     Ok(())
     /// }
     ///
-    /// pub fn vault_pda(program_id: &Pubkey, payer: &Pubkey) -> (Pubkey, u8) {
-    ///     let vault_seeds = &[b"vault", payer.as_ref()];
-    ///     let (vault, vault_bump_seed) = Pubkey::find_program_address(vault_seeds, program_id);
-    ///
-    ///     (vault, vault_bump_seed)
-    /// }
-    ///
     /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
     /// struct InstructionData {
     ///     pub vault_bump_seed: u8,
     ///     pub lamports: u64,
     /// }
-    ///
+    /// ```
+    /// The client program
+    /// 
+    /// ```no_run
+    /// # use anyhow::{Result, anyhow};
+    /// # use borsh::{BorshSerialize, BorshDeserialize};
+    /// # use solana_sdk::signature::Keypair;
+    /// # use solana_sdk::signature::Signer;
+    /// # use solana_sdk::transaction::Transaction;
+    /// # use solana_sdk::hash::Hash;
+    /// # use solana_sdk::pubkey::Pubkey;
+    /// # use solana_sdk::instruction::Instruction;
+    /// # use solana_program::instruction::AccountMeta;
+    /// # use solana_program::system_program;
+    /// # #[derive(BorshSerialize, BorshDeserialize, Debug)]
+    /// # struct InstructionData {
+    /// #    pub vault_bump_seed: u8,
+    /// #    pub lamports: u64,
+    /// # }
     /// # let program_id = Pubkey::new_unique();
-    /// # let payer_pubkey = Pubkey::new_unique();
-    /// // off-chain client call
-    /// let (vault_pubkey, vault_bump_seed) = vault_pda(
-    ///     &program_id,
-    ///     &payer_pubkey,
+    /// # let payer = Keypair::new();
+    /// let (vault_pubkey, vault_bump_seed) = Pubkey::find_program_address(
+    ///     &[b"vault", payer.pubkey().as_ref()],
+    ///     &program_id
     /// );
     ///
-    /// # let p = Pubkey::new_unique();
-    /// # let l = &mut 0;
-    /// # let d = &mut [0u8];
-    /// # let payer = AccountInfo::new(&p, false, false, l, d, &p, false, 0);
-    /// # let accounts = vec![payer.clone(), payer];
-    /// # let instr_data = InstructionData {
-    /// #     vault_bump_seed: u8::MAX,
-    /// #     lamports: 1000,
-    /// # };
-    /// # let mut buffer: Vec<u8> = Vec::new();
-    /// # instr_data.serialize(&mut buffer)?;
-    /// # process_instruction(
-    /// #    &program_id,
-    /// #    &accounts,
-    /// #    &buffer,
-    /// # )?;
-    /// # Ok::<(), ProgramError>(())
+    /// let instr_data = InstructionData {
+    ///     vault_bump_seed,
+    ///     lamports: 1_000_000,
+    /// };
+    /// let mut instr_buffer: Vec<u8> = Vec::new();
+    /// instr_data.serialize(&mut instr_buffer)
+    ///     .map_err(|error| anyhow!("Unable to serialize instructions."));
+    ///
+    /// let accounts = vec![
+    ///     AccountMeta::new(payer.pubkey(), true),
+    ///     AccountMeta::new(vault_pubkey, false),
+    ///     AccountMeta::new(system_program::ID, false),
+    /// ];
+    ///
+    /// let instruction = Instruction::new_with_bytes(
+    ///     program_id,
+    ///     &instr_buffer,
+    ///     accounts,
+    /// );
+    ///
+    /// # let blockhash = Hash::new_unique();
+    /// let mut transaction = Transaction::new_signed_with_payer(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    ///     &[&payer],
+    ///     blockhash,
+    /// );
+    ///
+    /// // send_and_confirm_transaction ...
     /// ```
+    pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
+        Self::try_find_program_address(seeds, program_id)
+            .unwrap_or_else(|| panic!("Unable to find a viable program address bump seed"))
+    }
+
+    /// Find a valid program address and its corresponding bump seed which must
+    /// be passed as an additional seed when calling `invoke_signed`.
+    ///
+    /// The processes of finding a valid program address is by trial and error,
+    /// and even though it is deterministic given a set of inputs it can take a
+    /// variable amount of time to succeed across different inputs.  This means
+    /// that when called from an on-chain program it may incur a variable amount
+    /// of the program's compute budget.  Programs that are meant to be very
+    /// performant may not want to use this function because it could take a
+    /// considerable amount of time.  Also, programs that area already at risk
+    /// of exceeding their compute budget should also call this with care since
+    /// there is a chance that the program's budget may be occasionally
+    /// exceeded.
     #[allow(clippy::same_item_push)]
     pub fn try_find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Option<(Pubkey, u8)> {
         // Perform the calculation inline, calling this from within a program is

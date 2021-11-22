@@ -284,6 +284,48 @@ impl Instruction {
         }
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::system_program;
+    /// # use borsh::{BorshSerialize, BorshDeserialize};
+    /// # use anyhow::Result;
+    /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+    /// pub struct MyInstruction {
+    ///     pub lamports: u64,
+    ///     // other fields
+    /// }
+    ///
+    /// impl MyInstruction {
+    ///     pub fn build_instruction(
+    ///         program_id: &Pubkey,
+    ///         payer: &Pubkey,
+    ///         lamports: u64,
+    ///     ) -> Result<Instruction>{
+    ///         let instr = MyInstruction {
+    ///             lamports: 1_000_000,
+    ///             // other fields
+    ///         };
+    ///         let mut instr_in_bytes: Vec<u8> = Vec::new();
+    ///         instr.serialize(&mut instr_in_bytes)?;
+    ///         # let payer_pubkey = Pubkey::new_unique();
+    ///         # let program_id = Pubkey::new_unique();
+    ///
+    ///         Ok(Instruction::new_with_bytes(
+    ///             program_id,
+    ///             &instr_in_bytes,
+    ///             vec![
+    ///                 AccountMeta::new(*payer, true), 
+    ///                 AccountMeta::new(system_program::ID, false), 
+    ///             ],
+    ///        ))
+    ///     }    
+    /// }
+    /// ```
     pub fn new_with_bytes(program_id: Pubkey, data: &[u8], accounts: Vec<AccountMeta>) -> Self {
         Self {
             program_id,

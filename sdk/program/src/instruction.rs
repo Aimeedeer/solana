@@ -291,8 +291,8 @@ impl Instruction {
     ///             program_id,
     ///             &instr,
     ///             vec![
-    ///                 AccountMeta::new(*payer, true), 
-    ///                 AccountMeta::new(system_program::ID, false), 
+    ///                 AccountMeta::new(*payer, true),
+    ///                 AccountMeta::new(system_program::ID, false),
     ///             ],
     ///        ))
     ///     }
@@ -311,7 +311,7 @@ impl Instruction {
         }
     }
 
-        /// # Examples
+    /// # Examples
     ///
     /// ```
     /// # use solana_program::{
@@ -344,8 +344,8 @@ impl Instruction {
     ///             program_id,
     ///             &instr,
     ///             vec![
-    ///                 AccountMeta::new(*payer, true), 
-    ///                 AccountMeta::new(system_program::ID, false), 
+    ///                 AccountMeta::new(*payer, true),
+    ///                 AccountMeta::new(system_program::ID, false),
     ///             ],
     ///        ))
     ///     }    
@@ -399,8 +399,8 @@ impl Instruction {
     ///             program_id,
     ///             &instr_in_bytes,
     ///             vec![
-    ///                 AccountMeta::new(*payer, true), 
-    ///                 AccountMeta::new(system_program::ID, false), 
+    ///                 AccountMeta::new(*payer, true),
+    ///                 AccountMeta::new(system_program::ID, false),
     ///             ],
     ///        ))
     ///     }    

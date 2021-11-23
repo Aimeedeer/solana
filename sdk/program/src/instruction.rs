@@ -428,6 +428,21 @@ pub struct AccountMeta {
 }
 
 impl AccountMeta {
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # let program_id = Pubkey::new_unique();
+    /// # let invoked_program_id = Pubkey::new_unique();
+    /// let instr = Instruction::new_with_bincode(
+    ///     program_id,
+    ///     &[0],
+    ///     vec![AccountMeta::new(invoked_program_id, true)],
+    /// );
+    /// ```
     pub fn new(pubkey: Pubkey, is_signer: bool) -> Self {
         Self {
             pubkey,
@@ -436,6 +451,21 @@ impl AccountMeta {
         }
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::system_program;
+    /// # let program_id = Pubkey::new_unique();
+    /// let instr = Instruction::new_with_bincode(
+    ///     program_id,
+    ///     &[0],
+    ///     vec![AccountMeta::new_readonly(system_program::ID, false)],
+    /// );
+    /// ```
     pub fn new_readonly(pubkey: Pubkey, is_signer: bool) -> Self {
         Self {
             pubkey,

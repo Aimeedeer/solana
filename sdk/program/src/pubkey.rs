@@ -381,7 +381,7 @@ impl Pubkey {
     /// );
     ///
     /// # let blockhash = Hash::new_unique();
-    /// let mut transaction = Transaction::new_signed_with_payer(
+    /// let transaction = Transaction::new_signed_with_payer(
     ///     &[instruction],
     ///     Some(&payer.pubkey()),
     ///     &[&payer],

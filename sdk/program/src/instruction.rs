@@ -258,6 +258,46 @@ impl Instruction {
         Self::new_with_bincode(program_id, data, accounts)
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_program::{
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::system_program;
+    /// # use anyhow::Result;
+    /// # use serde::{Serialize, Deserialize};
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// pub struct MyInstruction {
+    ///     pub lamports: u64,
+    ///     // other fields
+    /// }
+    ///
+    /// impl MyInstruction {
+    ///     pub fn build_instruction(
+    ///         program_id: &Pubkey,
+    ///         payer: &Pubkey,
+    ///         lamports: u64,
+    ///     ) -> Result<Instruction>{
+    ///         let instr = MyInstruction {
+    ///             lamports: 1_000_000,
+    ///             // other fields
+    ///         };
+    ///         # let payer_pubkey = Pubkey::new_unique();
+    ///         # let program_id = Pubkey::new_unique();
+    ///
+    ///         Ok(Instruction::new_with_bincode(
+    ///             program_id,
+    ///             &instr,
+    ///             vec![
+    ///                 AccountMeta::new(*payer, true), 
+    ///                 AccountMeta::new(system_program::ID, false), 
+    ///             ],
+    ///        ))
+    ///     }
+    /// }
+    /// ```
     pub fn new_with_bincode<T: Serialize>(
         program_id: Pubkey,
         data: &T,

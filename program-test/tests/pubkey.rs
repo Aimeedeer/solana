@@ -1,17 +1,16 @@
 use {
-    borsh::{BorshSerialize, BorshDeserialize},
+    borsh::{BorshDeserialize, BorshSerialize},
     solana_program_test::{processor, ProgramTest},
     solana_sdk::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
         instruction::{AccountMeta, Instruction},
         msg,
+        program::invoke_signed,
         pubkey::Pubkey,
         signature::Signer,
+        system_instruction, system_program,
         transaction::Transaction,
-        program::invoke_signed,
-        system_instruction,
-        system_program,
     },
 };
 
@@ -38,27 +37,11 @@ fn invoked_process_instruction_find_program_address(
     let lamports = instr.lamports;
 
     msg!("Before invoke_signed");
-    
+
     invoke_signed(
-        &system_instruction::create_account(
-            &payer.key,
-            &vault.key,
-            lamports,
-            0,
-            &program_id,
-        ),
-        &[
-            payer.clone(),
-            vault.clone(),
-            sys_program.clone(),
-        ],
-        &[
-            &[
-                b"vault",
-                payer.key.as_ref(),
-                &[vault_bump_seed],
-            ],
-        ]
+        &system_instruction::create_account(&payer.key, &vault.key, lamports, 0, &program_id),
+        &[payer.clone(), vault.clone(), sys_program.clone()],
+        &[&[b"vault", payer.key.as_ref(), &[vault_bump_seed]]],
     )?;
 
     msg!("Processed invoked instruction");
@@ -82,11 +65,8 @@ async fn invoke_program() {
     );
 
     let mut context = program_test.start_with_context().await;
-    let (vault_pubkey, vault_bump_seed) = vault_pda(
-        &invoked_program_id,
-        &context.payer.pubkey(),
-    );
-  
+    let (vault_pubkey, vault_bump_seed) = vault_pda(&invoked_program_id, &context.payer.pubkey());
+
     let instruction_data = InstructionData {
         vault_bump_seed,
         lamports: 1000,
@@ -98,9 +78,9 @@ async fn invoke_program() {
         invoked_program_id,
         &instr_buffer,
         vec![
-            AccountMeta::new(context.payer.pubkey().clone(), true), 
-            AccountMeta::new(vault_pubkey, false), 
-            AccountMeta::new(system_program::ID, false), 
+            AccountMeta::new(context.payer.pubkey().clone(), true),
+            AccountMeta::new(vault_pubkey, false),
+            AccountMeta::new(system_program::ID, false),
         ],
     )];
 

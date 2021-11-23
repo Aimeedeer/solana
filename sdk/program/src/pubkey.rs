@@ -336,7 +336,7 @@ impl Pubkey {
     /// }
     /// ```
     /// The client program
-    /// 
+    ///
     /// ```no_run
     /// # use anyhow::{Result, anyhow};
     /// # use borsh::{BorshSerialize, BorshDeserialize};

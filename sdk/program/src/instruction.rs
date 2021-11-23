@@ -284,7 +284,6 @@ impl Instruction {
     ///             lamports: 1_000_000,
     ///             // other fields
     ///         };
-    ///         # let payer_pubkey = Pubkey::new_unique();
     ///         # let program_id = Pubkey::new_unique();
     ///
     ///         Ok(Instruction::new_with_bincode(
@@ -337,7 +336,6 @@ impl Instruction {
     ///             lamports: 1_000_000,
     ///             // other fields
     ///         };
-    ///         # let payer_pubkey = Pubkey::new_unique();
     ///         # let program_id = Pubkey::new_unique();
     ///
     ///         Ok(Instruction::new_with_borsh(
@@ -392,7 +390,6 @@ impl Instruction {
     ///         };
     ///         let mut instr_in_bytes: Vec<u8> = Vec::new();
     ///         instr.serialize(&mut instr_in_bytes)?;
-    ///         # let payer_pubkey = Pubkey::new_unique();
     ///         # let program_id = Pubkey::new_unique();
     ///
     ///         Ok(Instruction::new_with_bytes(

@@ -71,6 +71,10 @@ impl Sanitize for Transaction {
 }
 
 impl Transaction {
+    /// # Examples
+    ///
+    /// ```
+    /// ```
     pub fn new_unsigned(message: Message) -> Self {
         Self {
             signatures: vec![Signature::default(); message.header.num_required_signatures as usize],
@@ -88,6 +92,38 @@ impl Transaction {
     /// # Panics
     ///
     /// Panics when signing fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_sdk::{
+    /// #     hash::Hash,
+    /// #     transaction::Transaction,
+    /// #     pubkey::Pubkey,
+    /// #     signature::{Keypair, Signer},
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use anyhow::Result;
+    /// # let payer = Keypair::new();
+    /// # let blockhash = Hash::default();
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let instuction = Instruction::new_with_bytes(
+    /// #     Pubkey::new_unique(),
+    /// #     &[0],
+    /// #     vec![
+    /// #         AccountMeta::new(Pubkey::new_unique(), false),
+    /// #     ],
+    /// # );
+    /// let mut tx = Transaction::new_signed_with_payer(
+    ///     &[instuction],
+    ///     Some(&payer.pubkey()),
+    ///     &[&payer],
+    ///     blockhash,
+    /// );
+    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new_signed_with_payer<T: Signers>(
         instructions: &[Instruction],
         payer: Option<&Pubkey>,

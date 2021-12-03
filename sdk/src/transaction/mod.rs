@@ -77,25 +77,33 @@ impl Transaction {
     /// # use solana_client::rpc_client::RpcClient;
     /// # use solana_sdk::{
     /// #     message::Message,
+    /// #     hash::Hash,
     /// #     pubkey::Pubkey,
-    /// #     instruction::{AccountMeta, Instruction},
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
     /// #     transaction::Transaction,
+    /// #     instruction::{AccountMeta, Instruction},
     /// # };
     /// # let client = RpcClient::new_mock("succeeds".to_string());
-    /// # let payer_pubkey = Pubkey::new_unique();
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
     /// # let instruction = Instruction::new_with_bytes(
     /// #     Pubkey::new_unique(),
     /// #     &[0],
     /// #     vec![
-    /// #         AccountMeta::new(payer_pubkey, false),
+    /// #         AccountMeta::new(payer.pubkey(), false),
     /// #     ],
     /// # );
     /// let message = Message::new(
     ///     &[instruction],
-    ///     Some(&payer_pubkey),
+    ///     Some(&payer.pubkey()),
     /// );
-    /// let tx = Transaction::new_unsigned(message);
-    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    /// let mut tx = Transaction::new_unsigned(message);
+    ///
+    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// tx.try_sign(&signers, blockhash)?;
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
     /// # Ok::<(), anyhow::Error>(())
     /// ```
     pub fn new_unsigned(message: Message) -> Self {
@@ -109,25 +117,33 @@ impl Transaction {
     ///
     /// ```
     /// # use solana_sdk::{
+    /// #     hash::Hash,
     /// #     transaction::Transaction,
     /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
     /// #     instruction::{AccountMeta, Instruction},
     /// # };
     /// # use solana_client::rpc_client::RpcClient;
-    /// # let payer_pubkey = Pubkey::new_unique();
     /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
     /// # let instuction = Instruction::new_with_bytes(
     /// #     Pubkey::new_unique(),
     /// #     &[0],
     /// #     vec![
-    /// #         AccountMeta::new(payer_pubkey, false),
+    /// #         AccountMeta::new(payer.pubkey(), false),
     /// #     ],
     /// # );
-    /// let tx = Transaction::new_with_payer(
+    /// let mut tx = Transaction::new_with_payer(
     ///     &[instuction],
-    ///     Some(&payer_pubkey),
+    ///     Some(&payer.pubkey()),
     /// );
-    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    ///
+    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// tx.try_sign(&signers, blockhash)?;
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
     /// # Ok::<(), anyhow::Error>(())
     /// ```
     pub fn new_with_payer(instructions: &[Instruction], payer: Option<&Pubkey>) -> Self {
@@ -168,7 +184,7 @@ impl Transaction {
     ///     &[&payer],
     ///     blockhash,
     /// );
-    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    /// client.send_and_confirm_transaction(&tx)?;
     /// # Ok::<(), anyhow::Error>(())
     /// ```
     pub fn new_signed_with_payer<T: Signers>(

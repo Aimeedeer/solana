@@ -261,6 +261,39 @@ impl Transaction {
     /// # Panics
     ///
     /// Panics when signing fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// #     instruction::{CompiledInstruction, Instruction},
+    /// # };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let payer = Keypair::new();
+    /// # let blockhash = Hash::default();
+    /// # let program_ids = vec![Pubkey::new_unique()];
+    /// # let instructions = vec![
+    /// #     CompiledInstruction::new(1, &(), vec![0, 1]),
+    /// #     CompiledInstruction::new(2, &(), vec![0, 2]),
+    /// # ];
+    /// # let gaming_vault_pubkey = Pubkey::new_unique();
+    /// # let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// let tx = Transaction::new_with_compiled_instructions(
+    ///     &signers,
+    ///     &vec![gaming_vault_pubkey],
+    ///     blockhash,
+    ///     program_ids,
+    ///     instructions,
+    /// );
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new_with_compiled_instructions<T: Signers>(
         from_keypairs: &T,
         keys: &[Pubkey],

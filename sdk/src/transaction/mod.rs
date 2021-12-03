@@ -202,6 +202,44 @@ impl Transaction {
     /// # Panics
     ///
     /// Panics when signing fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let payer = Keypair::new();
+    /// # let blockhash = Hash::default();
+    /// # let instruction = Instruction::new_with_bytes(
+    /// #     Pubkey::new_unique(),
+    /// #     &[0],
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), false),
+    /// #     ],
+    /// # );
+    /// let message = Message::new(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    /// );
+    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    ///
+    /// let tx = Transaction::new(
+    ///     &signers,
+    ///     message,
+    ///     blockhash,
+    /// );
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new<T: Signers>(
         from_keypairs: &T,
         message: Message,

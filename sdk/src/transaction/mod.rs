@@ -74,6 +74,29 @@ impl Transaction {
     /// # Examples
     ///
     /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     message::Message,
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// #     transaction::Transaction,
+    /// # };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let payer_pubkey = Pubkey::new_unique();
+    /// # let instruction = Instruction::new_with_bytes(
+    /// #     Pubkey::new_unique(),
+    /// #     &[0],
+    /// #     vec![
+    /// #         AccountMeta::new(payer_pubkey, false),
+    /// #     ],
+    /// # );
+    /// let message = Message::new(
+    ///     &[instruction],
+    ///     Some(&payer_pubkey),
+    /// );
+    /// let tx = Transaction::new_unsigned(message);
+    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
     /// ```
     pub fn new_unsigned(message: Message) -> Self {
         Self {
@@ -82,6 +105,31 @@ impl Transaction {
         }
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_sdk::{
+    /// #     transaction::Transaction,
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # let payer_pubkey = Pubkey::new_unique();
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let instuction = Instruction::new_with_bytes(
+    /// #     Pubkey::new_unique(),
+    /// #     &[0],
+    /// #     vec![
+    /// #         AccountMeta::new(payer_pubkey, false),
+    /// #     ],
+    /// # );
+    /// let tx = Transaction::new_with_payer(
+    ///     &[instuction],
+    ///     Some(&payer_pubkey),
+    /// );
+    /// client.send_and_confirm_transaction_with_spinner(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new_with_payer(instructions: &[Instruction], payer: Option<&Pubkey>) -> Self {
         let message = Message::new(instructions, payer);
         Self::new_unsigned(message)
@@ -104,7 +152,6 @@ impl Transaction {
     /// #     instruction::{AccountMeta, Instruction},
     /// # };
     /// # use solana_client::rpc_client::RpcClient;
-    /// # use anyhow::Result;
     /// # let payer = Keypair::new();
     /// # let blockhash = Hash::default();
     /// # let client = RpcClient::new_mock("succeeds".to_string());
@@ -112,10 +159,10 @@ impl Transaction {
     /// #     Pubkey::new_unique(),
     /// #     &[0],
     /// #     vec![
-    /// #         AccountMeta::new(Pubkey::new_unique(), false),
+    /// #         AccountMeta::new(payer.pubkey(), false),
     /// #     ],
     /// # );
-    /// let mut tx = Transaction::new_signed_with_payer(
+    /// let tx = Transaction::new_signed_with_payer(
     ///     &[instuction],
     ///     Some(&payer.pubkey()),
     ///     &[&payer],

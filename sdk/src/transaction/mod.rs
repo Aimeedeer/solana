@@ -278,7 +278,7 @@ impl Transaction {
     /// # let payer = Keypair::new();
     /// # let blockhash = Hash::default();
     /// # let program_ids = vec![Pubkey::new_unique()];
-    /// # let instructions = vec![
+    /// # let compiled_instructions = vec![
     /// #     CompiledInstruction::new(1, &(), vec![0, 1]),
     /// #     CompiledInstruction::new(2, &(), vec![0, 2]),
     /// # ];
@@ -289,7 +289,7 @@ impl Transaction {
     ///     &vec![gaming_vault_pubkey],
     ///     blockhash,
     ///     program_ids,
-    ///     instructions,
+    ///     compiled_instructions,
     /// );
     /// client.send_and_confirm_transaction(&tx)?;
     /// # Ok::<(), anyhow::Error>(())

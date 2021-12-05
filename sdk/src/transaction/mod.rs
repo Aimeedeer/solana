@@ -100,7 +100,7 @@ impl Transaction {
     /// );
     /// let mut tx = Transaction::new_unsigned(message);
     ///
-    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
     /// tx.try_sign(&signers, blockhash)?;
     ///
     /// client.send_and_confirm_transaction(&tx)?;
@@ -140,7 +140,7 @@ impl Transaction {
     ///     Some(&payer.pubkey()),
     /// );
     ///
-    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
     /// tx.try_sign(&signers, blockhash)?;
     ///
     /// client.send_and_confirm_transaction(&tx)?;
@@ -230,7 +230,7 @@ impl Transaction {
     ///     &[instruction],
     ///     Some(&payer.pubkey()),
     /// );
-    /// let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
     ///
     /// let tx = Transaction::new(
     ///     &signers,
@@ -283,7 +283,7 @@ impl Transaction {
     /// #     CompiledInstruction::new(2, &(), vec![0, 2]),
     /// # ];
     /// # let gaming_vault_pubkey = Pubkey::new_unique();
-    /// # let signers: Vec<Box<dyn Signer>> = vec![Box::new(payer)];
+    /// # let signers: Vec<&dyn Signer> = vec![&payer];
     /// let tx = Transaction::new_with_compiled_instructions(
     ///     &signers,
     ///     &vec![gaming_vault_pubkey],

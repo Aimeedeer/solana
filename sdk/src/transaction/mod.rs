@@ -87,11 +87,11 @@ impl Transaction {
     /// # let client = RpcClient::new_mock("succeeds".to_string());
     /// # let blockhash = Hash::default();
     /// # let payer = Keypair::new();
-    /// # let instruction = Instruction::new_with_bytes(
+    /// # let instruction = Instruction::new_with_borsh(
     /// #     Pubkey::new_unique(),
-    /// #     &[0],
+    /// #     &0,
     /// #     vec![
-    /// #         AccountMeta::new(payer.pubkey(), false),
+    /// #         AccountMeta::new(payer.pubkey(), true),
     /// #     ],
     /// # );
     /// let message = Message::new(
@@ -128,11 +128,11 @@ impl Transaction {
     /// # let client = RpcClient::new_mock("succeeds".to_string());
     /// # let blockhash = Hash::default();
     /// # let payer = Keypair::new();
-    /// # let instuction = Instruction::new_with_bytes(
+    /// # let instuction = Instruction::new_with_borsh(
     /// #     Pubkey::new_unique(),
-    /// #     &[0],
+    /// #     &0,
     /// #     vec![
-    /// #         AccountMeta::new(payer.pubkey(), false),
+    /// #         AccountMeta::new(payer.pubkey(), true),
     /// #     ],
     /// # );
     /// let mut tx = Transaction::new_with_payer(
@@ -171,11 +171,11 @@ impl Transaction {
     /// # let payer = Keypair::new();
     /// # let blockhash = Hash::default();
     /// # let client = RpcClient::new_mock("succeeds".to_string());
-    /// # let instuction = Instruction::new_with_bytes(
+    /// # let instuction = Instruction::new_with_borsh(
     /// #     Pubkey::new_unique(),
-    /// #     &[0],
+    /// #     &0,
     /// #     vec![
-    /// #         AccountMeta::new(payer.pubkey(), false),
+    /// #         AccountMeta::new(payer.pubkey(), true),
     /// #     ],
     /// # );
     /// let tx = Transaction::new_signed_with_payer(
@@ -219,11 +219,11 @@ impl Transaction {
     /// # let client = RpcClient::new_mock("succeeds".to_string());
     /// # let payer = Keypair::new();
     /// # let blockhash = Hash::default();
-    /// # let instruction = Instruction::new_with_bytes(
+    /// # let instruction = Instruction::new_with_borsh(
     /// #     Pubkey::new_unique(),
-    /// #     &[0],
+    /// #     &0,
     /// #     vec![
-    /// #         AccountMeta::new(payer.pubkey(), false),
+    /// #         AccountMeta::new(payer.pubkey(), true),
     /// #     ],
     /// # );
     /// let message = Message::new(

@@ -7,6 +7,62 @@ use crate::{
 /// Notes:
 /// - RefCell checking can be compute unit expensive, to avoid that expense use
 ///   `invoke_unchecked` instead, but at your own risk.
+///
+/// # Examples
+///
+/// ```
+/// # use solana_program::{
+/// #    pubkey::Pubkey,
+/// #    sysvar::slot_history::AccountInfo,
+/// #    entrypoint::ProgramResult,
+/// #    account_info::next_account_info,
+/// #    program::invoke,
+/// # };
+/// # use borsh::{BorshSerialize, BorshDeserialize};
+/// #[derive(Debug, BorshSerialize, BorshDeserialize)]
+/// pub enum MyInstruction {
+///     DepositSol { amount_lamports: u64 },
+///     // other fields ...
+/// }
+///
+/// // The entrypoint of the on-chain program, as provided to the
+/// // `entrypoint!` macro.
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction: &[u8],
+/// ) -> ProgramResult {
+///     let mut instruction = instruction;
+///     let instr = MyInstruction::deserialize(&mut instruction)?;
+///
+///     match instr {
+///         MyInstruction::DepositSol { amount_lamports } => {
+///             let account_info_iter = &mut accounts.iter();
+///             let tx_from = next_account_info(account_info_iter)?;
+///             let tx_destination = next_account_info(account_info_iter)?;
+///             let system_program = next_account_info(account_info_iter)?;
+///
+///             // do security check ...
+///
+///             let ix = solana_program::system_instruction::transfer(
+///                 tx_from.key,
+///                 tx_destination.key,
+///                 amount_lamports
+///             );
+///
+///             invoke(
+///                 &ix,
+///                 &[
+///                     tx_from.clone(),
+///                     tx_destination.clone(),
+///                     system_program.clone()
+///                 ],
+///             )
+///         }
+///         // other instruction options ...
+///     }
+/// }
+/// ```
 pub fn invoke(instruction: &Instruction, account_infos: &[AccountInfo]) -> ProgramResult {
     invoke_signed(instruction, account_infos, &[])
 }

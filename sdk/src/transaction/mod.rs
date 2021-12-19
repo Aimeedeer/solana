@@ -530,6 +530,7 @@ impl Transaction {
     ///     vote_instruction,
     ///     vote_state::Vote,
     /// };
+    ///
     /// # let client = RpcClient::new_mock("succeeds".to_string());
     /// # let blockhash = Hash::default();
     /// # let node = Keypair::new();
@@ -548,9 +549,10 @@ impl Transaction {
     ///     &[instruction],
     ///     Some(&node.pubkey()),
     /// );
+    ///
     /// let node_signer: Vec<&dyn Signer> = vec![&node];
-    /// let authorized_voter_signer: Vec<&dyn Signer> = vec![&authorized_voter];
     /// tx.partial_sign(&node_signer, blockhash);
+    /// let authorized_voter_signer: Vec<&dyn Signer> = vec![&authorized_voter];
     /// tx.partial_sign(&authorized_voter_signer, blockhash);
     ///
     /// client.send_and_confirm_transaction(&tx)?;
@@ -633,6 +635,42 @@ impl Transaction {
     /// [`PresignerError::VerificationFailure`]: crate::signer::presigner::PresignerError::VerificationFailure
     /// [`solana-remote-wallet`]: https://docs.rs/solana-remote-wallet/latest/
     /// [`RemoteKeypair`]: https://docs.rs/solana-remote-wallet/latest/solana_remote_wallet/remote_keypair/struct.RemoteKeypair.html
+        ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
+    /// # let instruction = Instruction::new_with_borsh(
+    /// #     Pubkey::new_unique(),
+    /// #     &0,
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), true),
+    /// #     ],
+    /// # );
+    /// let message = Message::new(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    /// );
+    /// let mut tx = Transaction::new_unsigned(message);
+    ///
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
+    /// tx.try_sign(&signers, blockhash)?;
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn try_sign<T: Signers>(
         &mut self,
         keypairs: &T,

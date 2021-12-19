@@ -86,6 +86,7 @@ js-sys = "0.3.55"
 anyhow = "1.0.45"
 curve25519-dalek = "3.2.0"
 solana-client = { path = "../client" }
+solana-vote-program = { path = "../programs/vote" }
 tiny-bip39 = "0.8.2"
 
 [build-dependencies]

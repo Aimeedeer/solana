@@ -464,6 +464,43 @@ impl Transaction {
     /// Signing will fail if
     ///
     /// todo copy from try_sign
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
+    /// # let instruction = Instruction::new_with_borsh(
+    /// #     Pubkey::new_unique(),
+    /// #     &0,
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), true),
+    /// #     ],
+    /// # );
+    /// let message = Message::new(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    /// );
+    /// let mut tx = Transaction::new_unsigned(message);
+    ///
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
+    /// // panic if failed
+    /// tx.sign(&signers, blockhash);
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn sign<T: Signers>(&mut self, keypairs: &T, recent_blockhash: Hash) {
         if let Err(e) = self.try_sign(keypairs, recent_blockhash) {
             panic!("Transaction::sign failed with error {:?}", e);
@@ -477,6 +514,48 @@ impl Transaction {
     /// # Panics
     ///
     /// Panics when signing fails, use [`Transaction::try_partial_sign`] to handle the error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// # };
+    /// use solana_vote_program::{
+    ///     vote_instruction,
+    ///     vote_state::Vote,
+    /// };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let node = Keypair::new();
+    /// # let vote = Keypair::new();
+    /// # let authorized_voter = Keypair::new(); 
+    /// # let slots = vec![42];
+    /// # let bank_hash = Hash::default();
+    /// let votes = Vote::new(slots, bank_hash);
+    /// let instruction = vote_instruction::vote(
+    ///     &vote.pubkey(),
+    ///     &authorized_voter.pubkey(),
+    ///     votes,
+    /// );
+    ///
+    /// let mut tx = Transaction::new_with_payer(
+    ///     &[instruction],
+    ///     Some(&node.pubkey()),
+    /// );
+    /// let node_signer: Vec<&dyn Signer> = vec![&node];
+    /// let authorized_voter_signer: Vec<&dyn Signer> = vec![&authorized_voter];
+    /// tx.partial_sign(&node_signer, blockhash);
+    /// tx.partial_sign(&authorized_voter_signer, blockhash);
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn partial_sign<T: Signers>(&mut self, keypairs: &T, recent_blockhash: Hash) {
         if let Err(e) = self.try_partial_sign(keypairs, recent_blockhash) {
             panic!("Transaction::partial_sign failed with error {:?}", e);

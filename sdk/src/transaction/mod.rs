@@ -453,7 +453,7 @@ impl Transaction {
 
     /// Sign the transaction.
     ///
-    /// 
+    ///
     /// Check keys and keypair lengths, then sign this transaction.
     ///
     /// # Panics
@@ -534,7 +534,7 @@ impl Transaction {
     /// # let blockhash = Hash::default();
     /// # let node = Keypair::new();
     /// # let vote = Keypair::new();
-    /// # let authorized_voter = Keypair::new(); 
+    /// # let authorized_voter = Keypair::new();
     /// # let slots = vec![42];
     /// # let bank_hash = Hash::default();
     /// let votes = Vote::new(slots, bank_hash);

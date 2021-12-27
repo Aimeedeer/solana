@@ -514,50 +514,6 @@ impl Transaction {
     /// # Panics
     ///
     /// Panics when signing fails, use [`Transaction::try_partial_sign`] to handle the error.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use solana_client::rpc_client::RpcClient;
-    /// # use solana_sdk::{
-    /// #     hash::Hash,
-    /// #     pubkey::Pubkey,
-    /// #     signers::Signers,
-    /// #     signature::{Keypair, Signer},
-    /// #     transaction::Transaction,
-    /// # };
-    /// use solana_vote_program::{
-    ///     vote_instruction,
-    ///     vote_state::Vote,
-    /// };
-    ///
-    /// # let client = RpcClient::new_mock("succeeds".to_string());
-    /// # let blockhash = Hash::default();
-    /// # let node = Keypair::new();
-    /// # let vote = Keypair::new();
-    /// # let authorized_voter = Keypair::new();
-    /// # let slots = vec![42];
-    /// # let bank_hash = Hash::default();
-    /// let votes = Vote::new(slots, bank_hash);
-    /// let instruction = vote_instruction::vote(
-    ///     &vote.pubkey(),
-    ///     &authorized_voter.pubkey(),
-    ///     votes,
-    /// );
-    ///
-    /// let mut tx = Transaction::new_with_payer(
-    ///     &[instruction],
-    ///     Some(&node.pubkey()),
-    /// );
-    ///
-    /// let node_signer: Vec<&dyn Signer> = vec![&node];
-    /// tx.partial_sign(&node_signer, blockhash);
-    /// let authorized_voter_signer: Vec<&dyn Signer> = vec![&authorized_voter];
-    /// tx.partial_sign(&authorized_voter_signer, blockhash);
-    ///
-    /// client.send_and_confirm_transaction(&tx)?;
-    /// # Ok::<(), anyhow::Error>(())
-    /// ```
     pub fn partial_sign<T: Signers>(&mut self, keypairs: &T, recent_blockhash: Hash) {
         if let Err(e) = self.try_partial_sign(keypairs, recent_blockhash) {
             panic!("Transaction::partial_sign failed with error {:?}", e);
@@ -688,6 +644,51 @@ impl Transaction {
     ///  Sign using some subset of required keys, returning any signing errors encountered. If
     ///  recent_blockhash is not the same as currently in the transaction, clear any prior
     ///  signatures and update recent_blockhash
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_sdk::{
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// # };
+    /// use solana_vote_program::{
+    ///     vote_instruction,
+    ///     vote_state::Vote,
+    /// };
+    ///
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let node = Keypair::new();
+    /// # let vote = Keypair::new();
+    /// # let authorized_voter = Keypair::new();
+    /// # let slots = vec![42];
+    /// # let bank_hash = Hash::default();
+    /// let votes = Vote::new(slots, bank_hash);
+    /// let instruction = vote_instruction::vote(
+    ///     &vote.pubkey(),
+    ///     &authorized_voter.pubkey(),
+    ///     votes,
+    /// );
+    ///
+    /// let mut tx = Transaction::new_with_payer(
+    ///     &[instruction],
+    ///     Some(&node.pubkey()),
+    /// );
+    ///
+    /// let node_signer: Vec<&dyn Signer> = vec![&node];
+    /// tx.try_partial_sign(&node_signer, blockhash)?;
+    ///
+    /// let authorized_voter_signer: Vec<&dyn Signer> = vec![&authorized_voter];
+    /// tx.partial_sign(&authorized_voter_signer, blockhash)?;
+    ///
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn try_partial_sign<T: Signers>(
         &mut self,
         keypairs: &T,
@@ -744,6 +745,59 @@ impl Transaction {
     }
 
     /// Verify the transaction and hash its message
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_sdk::{
+    /// #     transaction::{
+    /// #         Result,
+    /// #         SanitizedTransaction,
+    /// #         TransactionError,
+    /// #         TransactionVerificationMode,
+    /// #         VersionedTransaction,
+    /// #     },
+    /// #     packet::PACKET_DATA_SIZE,
+    /// #     feature_set::FeatureSet,
+    /// # };
+    /// # struct Bank {
+    /// #     pub feature_set: std::sync::Arc<FeatureSet>,
+    /// # }
+    /// # impl Bank {
+    /// // this example is copied from `runtime/src/bank.rs`
+    /// pub fn verify_transaction(
+    ///     &self,
+    ///     tx: VersionedTransaction,
+    ///     verification_mode: TransactionVerificationMode,
+    /// ) -> Result<SanitizedTransaction> {
+    ///     let sanitized_tx = {
+    ///         let size =
+    ///             bincode::serialized_size(&tx).map_err(|_| TransactionError::SanitizeFailure)?;
+    ///         if size > PACKET_DATA_SIZE as u64 {
+    ///             return Err(TransactionError::SanitizeFailure);
+    ///         }
+    ///         let message_hash = if verification_mode == TransactionVerificationMode::FullVerification
+    ///         {
+    ///             tx.verify_and_hash_message()?
+    ///         } else {
+    ///             tx.message.hash()
+    ///         };
+    ///
+    ///         SanitizedTransaction::try_create(tx, message_hash, None, |_| {
+    ///             Err(TransactionError::UnsupportedVersion)
+    ///         })
+    ///     }?;
+    ///
+    ///     if verification_mode == TransactionVerificationMode::HashAndVerifyPrecompiles
+    ///         || verification_mode == TransactionVerificationMode::FullVerification
+    ///     {
+    ///         sanitized_tx.verify_precompiles(&self.feature_set)?;
+    ///     }
+    ///
+    ///     Ok(sanitized_tx)
+    /// }
+    /// # }
+    /// ```
     pub fn verify_and_hash_message(&self) -> Result<Hash> {
         let message_bytes = self.message_data();
         if !self

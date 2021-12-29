@@ -12,16 +12,18 @@ use crate::{
 ///
 /// ```
 /// # use solana_program::{
-/// #    pubkey::Pubkey,
-/// #    sysvar::slot_history::AccountInfo,
-/// #    entrypoint::ProgramResult,
-/// #    account_info::next_account_info,
-/// #    program::invoke,
+/// #     pubkey::Pubkey,
+/// #     entrypoint::ProgramResult,
+/// #     account_info::{
+/// #         AccountInfo,
+/// #         next_account_info,
+/// #     },
+/// #     program::invoke,
 /// # };
 /// # use borsh::{BorshSerialize, BorshDeserialize};
 /// #[derive(Debug, BorshSerialize, BorshDeserialize)]
 /// pub enum MyInstruction {
-///     DepositSol { amount_lamports: u64 },
+///     DepositSol { lamports: u64 },
 ///     // other fields ...
 /// }
 ///
@@ -36,7 +38,7 @@ use crate::{
 ///     let instr = MyInstruction::deserialize(&mut instruction)?;
 ///
 ///     match instr {
-///         MyInstruction::DepositSol { amount_lamports } => {
+///         MyInstruction::DepositSol { lamports } => {
 ///             let account_info_iter = &mut accounts.iter();
 ///             let tx_from = next_account_info(account_info_iter)?;
 ///             let tx_destination = next_account_info(account_info_iter)?;
@@ -44,18 +46,16 @@ use crate::{
 ///
 ///             // do security check ...
 ///
-///             let ix = solana_program::system_instruction::transfer(
-///                 tx_from.key,
-///                 tx_destination.key,
-///                 amount_lamports
-///             );
-///
 ///             invoke(
-///                 &ix,
+///                 &solana_program::system_instruction::transfer(
+///                     tx_from.key,
+///                     tx_destination.key,
+///                     lamports,
+///                 ),
 ///                 &[
 ///                     tx_from.clone(),
 ///                     tx_destination.clone(),
-///                     system_program.clone()
+///                     system_program.clone(),
 ///                 ],
 ///             )
 ///         }
@@ -82,6 +82,78 @@ pub fn invoke_unchecked(instruction: &Instruction, account_infos: &[AccountInfo]
 /// Notes:
 /// - RefCell checking can be compute unit expensive, to avoid that expense use
 ///   `invoke_signed_unchecked` instead, but at your own risk.
+///
+/// # Examples
+///
+/// ```
+/// # use solana_program::{
+/// #     pubkey::Pubkey,
+/// #     account_info::{
+/// #         AccountInfo,
+/// #         next_account_info,
+/// #     },
+/// #     system_instruction,
+/// #     entrypoint::ProgramResult,
+/// #     program::invoke_signed,
+/// # };
+/// # use borsh::{BorshSerialize, BorshDeserialize};
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct InstructionData {
+///     pub vault_bump_seed: u8,
+///     pub lamports: u64,
+/// }
+///
+/// # pub static VAULT_ACCOUNT_SIZE: u64 = 1024;
+/// // The entrypoint of the on-chain program, as provided to the
+/// // `entrypoint!` macro.
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction_data: &[u8],
+/// ) -> ProgramResult {
+///     let account_info_iter = &mut accounts.iter();
+///     let payer = next_account_info(account_info_iter)?;
+///     // The vault PDA, derived from the payer's address
+///     let vault = next_account_info(account_info_iter)?;
+///
+///     let mut instruction_data = instruction_data;
+///     let instr = InstructionData::deserialize(&mut instruction_data)?;
+///     let vault_bump_seed = instr.vault_bump_seed;
+///     let lamports = instr.lamports;
+///     let vault_size = VAULT_ACCOUNT_SIZE;
+///
+///     // do security check ...
+///
+///     // Invoke the system program to create an account while virtually
+///     // signing with the vault PDA, which is owned by this caller program.
+///     invoke_signed(
+///         &system_instruction::create_account(
+///             &payer.key,
+///             &vault.key,
+///             lamports,
+///             vault_size,
+///             &program_id,
+///         ),
+///         &[
+///             payer.clone(),
+///             vault.clone(),
+///         ],
+///         // A slice of seed slices, each seed slice being the set
+///         // of seeds used to generate one of the PDAs required by the
+///         // callee program, the final seed being a single-element slice
+///         // containing the `u8` bump seed.
+///         &[
+///             &[
+///                 b"vault",
+///                 payer.key.as_ref(),
+///                 &[vault_bump_seed],
+///             ],
+///         ]
+///     )?;
+///
+///     Ok(())
+/// }
+/// ```
 pub fn invoke_signed(
     instruction: &Instruction,
     account_infos: &[AccountInfo],

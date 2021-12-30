@@ -250,6 +250,44 @@ impl Message {
         }
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_program::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
+    /// # let instruction = Instruction::new_with_borsh(
+    /// #     Pubkey::new_unique(),
+    /// #     &0,
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), true),
+    /// #     ],
+    /// # );
+    /// let message = Message::new(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    /// );
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
+    /// let tx = Transaction::new(
+    ///     &signers,
+    ///     message,
+    ///     blockhash,
+    /// );
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new(instructions: &[Instruction], payer: Option<&Pubkey>) -> Self {
         Self::new_with_blockhash(instructions, payer, &Hash::default())
     }

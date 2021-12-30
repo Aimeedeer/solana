@@ -292,6 +292,46 @@ impl Message {
         Self::new_with_blockhash(instructions, payer, &Hash::default())
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_program::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
+    /// # let instruction = Instruction::new_with_borsh(
+    /// #     Pubkey::new_unique(),
+    /// #     &0,
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), true),
+    /// #     ],
+    /// # );
+    /// # let blockhash = Hash::default();
+    /// let message = Message::new_with_blockhash(
+    ///     &[instruction],
+    ///     Some(&payer.pubkey()),
+    ///     &blockhash,
+    /// );
+    /// let signers: Vec<&dyn Signer> = vec![&payer];
+    /// let tx = Transaction::new(
+    ///     &signers,
+    ///     message,
+    ///     blockhash,
+    /// );
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new_with_blockhash(
         instructions: &[Instruction],
         payer: Option<&Pubkey>,
@@ -316,6 +356,48 @@ impl Message {
         )
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use solana_client::rpc_client::RpcClient;
+    /// # use solana_program::{
+    /// #     message::Message,
+    /// #     hash::Hash,
+    /// #     pubkey::Pubkey,
+    /// #     instruction::{AccountMeta, Instruction},
+    /// # };
+    /// # use solana_sdk::{
+    /// #     signers::Signers,
+    /// #     signature::{Keypair, Signer},
+    /// #     transaction::Transaction,
+    /// };
+    /// # let client = RpcClient::new_mock("succeeds".to_string());
+    /// # let blockhash = Hash::default();
+    /// # let payer = Keypair::new();
+    /// # let nonce_account_pubkey = Pubkey::new_unique();
+    /// # let nonce_authority = Keypair::new();
+    /// # let instruction = Instruction::new_with_borsh(
+    /// #     Pubkey::new_unique(),
+    /// #     &0,
+    /// #     vec![
+    /// #         AccountMeta::new(payer.pubkey(), true),
+    /// #     ],
+    /// # );
+    /// let message = Message::new_with_nonce(
+    ///     vec![instruction],
+    ///     Some(&payer.pubkey()),
+    ///     &nonce_account_pubkey,
+    ///     &nonce_authority.pubkey(),
+    /// );
+    /// let signers: Vec<&dyn Signer> = vec![&payer, &nonce_authority];
+    /// let tx = Transaction::new(
+    ///     &signers,
+    ///     message,
+    ///     blockhash,
+    /// );
+    /// client.send_and_confirm_transaction(&tx)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub fn new_with_nonce(
         mut instructions: Vec<Instruction>,
         payer: Option<&Pubkey>,

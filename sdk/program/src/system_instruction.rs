@@ -501,6 +501,7 @@ pub fn create_nonce_account_with_seed(
 /// # use solana_program::example_mocks::solana_client;
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
+/// #   pubkey::Pubkey,
 ///     signature::Keypair,
 ///     system_instruction,
 ///     transaction::Transaction,
@@ -566,6 +567,80 @@ pub fn create_nonce_account(
     ]
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_program::example_mocks::solana_sdk;
+/// # use solana_program::example_mocks::solana_client;
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     message::Message,
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+///     nonce::State,
+/// };
+/// # use std::fs;
+/// # use std::fs::File;
+/// # use std::io::BufWriter;
+/// use std::path::PathBuf;
+/// use anyhow::Result;
+/// # use anyhow::anyhow;
+///
+/// fn create_transfer_tx_with_nonce(
+///     client: &RpcClient,
+///     nonce_account_pubkey: &Pubkey,
+///     payer: &Keypair,
+///     receiver: &Pubkey,
+///     amount: u64,
+///     path: PathBuf,
+/// ) -> Result<()> {
+///
+///     let instr_transfer = system_instruction::transfer(
+///         &payer.pubkey(),
+///         receiver,
+///         amount,
+///     );
+///
+///     // in this example, `payer` is `nonce_account`'s authority
+///     let instr_advance_nonce_account = system_instruction::advance_nonce_account(
+///         nonce_account_pubkey,
+///         &payer.pubkey(),
+///     );
+///
+///     let message = Message::new(&[instr_advance_nonce_account, instr_transfer], Some(&payer.pubkey()));
+///     let mut tx = Transaction::new_unsigned(message);
+///
+///     let nonce_account = client.get_account(&nonce_account_pubkey)?;
+///     let nonce_data = solana_client::nonce_utils::data_from_account(&nonce_account)?;
+///     let blockhash = nonce_data.blockhash;
+///
+///     tx.try_sign(&[payer], blockhash)?;
+///
+///     // save the signed tx locally
+///     save_tx_to_file(&path, &tx)?;
+///
+/// #   fs::remove_file(&path)?;
+///
+///     Ok(())
+/// }
+/// #
+/// # fn save_tx_to_file(path: &PathBuf, tx: &Transaction) -> Result<()> {
+/// #    let file = File::create(&path)?;
+/// #    let mut writer = BufWriter::new(file);
+/// #
+/// #    serde_json::to_writer(&mut writer, tx).map_err(|e| anyhow!("{}", e))
+/// # }
+/// #
+/// # let client = RpcClient::new(String::new());
+/// # let nonce_account_pubkey = Pubkey::new_unique();
+/// # let payer = Keypair::new();
+/// # let receiver = Pubkey::new_unique();
+/// # create_transfer_tx_with_nonce(&client, &nonce_account_pubkey, &payer, &receiver, 1024, PathBuf::from("new_tx"))?;
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn advance_nonce_account(nonce_pubkey: &Pubkey, authorized_pubkey: &Pubkey) -> Instruction {
     let account_metas = vec![
         AccountMeta::new(*nonce_pubkey, false),

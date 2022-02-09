@@ -13,6 +13,36 @@
 #![doc(hidden)]
 #![allow(clippy::new_without_default)]
 pub mod solana_client {
+    pub mod nonce_utils {
+        use super::super::solana_sdk::{
+            account::ReadableAccount, account_utils::StateMut, hash::Hash, pubkey::Pubkey,
+        };
+        use crate::nonce::state::{Data, Versions};
+        use core::fmt::Formatter;
+
+        pub enum Error {}
+
+        impl core::fmt::Display for Error {
+            fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}", self)
+            }
+        }
+
+        impl core::fmt::Debug for Error {
+            fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+                f.debug_tuple("").field(self).finish()
+            }
+        }
+
+        impl std::error::Error for Error {}
+
+        pub fn data_from_account<T: ReadableAccount + StateMut<Versions>>(
+            _account: &T,
+        ) -> Result<Data, Error> {
+            Ok(Data::new(Pubkey::new_unique(), Hash::default(), 5000))
+        }
+    }
+
     pub mod client_error {
         use thiserror::Error;
 
@@ -24,8 +54,10 @@ pub mod solana_client {
 
     pub mod rpc_client {
         use super::super::solana_sdk::{
-            hash::Hash, signature::Signature, transaction::Transaction,
+            account::Account, hash::Hash, pubkey::Pubkey, signature::Signature,
+            transaction::Transaction,
         };
+        use super::client_error::ClientError;
         use super::client_error::Result as ClientResult;
 
         pub struct RpcClient;
@@ -52,6 +84,10 @@ pub mod solana_client {
             ) -> ClientResult<u64> {
                 Ok(0)
             }
+
+            pub fn get_account(&self, _pubkey: &Pubkey) -> Result<Account, ClientError> {
+                Ok(Account {})
+            }
         }
     }
 }
@@ -66,8 +102,30 @@ pub mod solana_sdk {
     pub use crate::instruction;
     pub use crate::message;
     pub use crate::nonce;
-    pub use crate::pubkey;
+    pub use crate::pubkey::{self, Pubkey};
     pub use crate::system_instruction;
+
+    pub mod account {
+        pub struct Account;
+
+        pub trait ReadableAccount: Sized {
+            fn data(&self) -> &[u8];
+        }
+
+        impl ReadableAccount for Account {
+            fn data(&self) -> &[u8] {
+                &[0]
+            }
+        }
+    }
+
+    pub mod account_utils {
+        use super::account::Account;
+
+        pub trait StateMut<T> {}
+
+        impl<T> StateMut<T> for Account {}
+    }
 
     pub mod signature {
         use crate::pubkey::Pubkey;
@@ -112,7 +170,9 @@ pub mod solana_sdk {
         use crate::instruction::Instruction;
         use crate::message::Message;
         use crate::pubkey::Pubkey;
+        use serde::Serialize;
 
+        #[derive(Serialize)]
         pub struct Transaction {
             pub message: Message,
         }

@@ -494,6 +494,51 @@ pub fn create_nonce_account_with_seed(
     ]
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_program::example_mocks::solana_sdk;
+/// # use solana_program::example_mocks::solana_client;
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+///     nonce::State,
+/// };
+/// use anyhow::Result;
+///
+/// fn create_nonce_account_tx(
+///     client: &RpcClient,
+///     rent_payer: &Keypair,
+/// ) -> Result<()> {
+///
+///     let nonce_account = Keypair::new();
+///
+///     let nonce_rent = client.get_minimum_balance_for_rent_exemption(State::size())?;
+///     let instr = system_instruction::create_nonce_account(
+///         &rent_payer.pubkey(),
+///         &nonce_account.pubkey(),
+///         &rent_payer.pubkey(),
+///         nonce_rent,
+///     );
+///
+///     let mut tx = Transaction::new_with_payer(&instr, Some(&rent_payer.pubkey()));
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     tx.try_sign(&[&nonce_account, rent_payer], blockhash)?;
+///
+///     client.send_and_confirm_transaction(&tx)?;
+///
+///     Ok(())
+/// }
+/// #
+/// # let client = RpcClient::new(String::new());
+/// # let rent_payer = Keypair::new();
+/// # create_nonce_account_tx(&client, &rent_payer)?;
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn create_nonce_account(
     from_pubkey: &Pubkey,
     nonce_pubkey: &Pubkey,

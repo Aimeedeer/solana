@@ -94,6 +94,11 @@ pub mod solana_sdk {
 
     pub mod signers {
         use super::signature::Signer;
+        use core::fmt::Debug;
+        use thiserror::Error;
+
+        #[derive(Debug, Error, PartialEq)]
+        pub enum SignerError {}
 
         pub trait Signers {}
 
@@ -102,7 +107,7 @@ pub mod solana_sdk {
     }
 
     pub mod transaction {
-        use super::signers::Signers;
+        use super::signers::{SignerError, Signers};
         use crate::hash::Hash;
         use crate::instruction::Instruction;
         use crate::message::Message;
@@ -136,6 +141,14 @@ pub mod solana_sdk {
             }
 
             pub fn sign<T: Signers>(&mut self, _keypairs: &T, _recent_blockhash: Hash) {}
+
+            pub fn try_sign<T: Signers>(
+                &mut self,
+                _keypairs: &T,
+                _recent_blockhash: Hash,
+            ) -> Result<(), SignerError> {
+                Ok(())
+            }
         }
     }
 }

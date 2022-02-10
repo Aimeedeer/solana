@@ -588,7 +588,7 @@ pub fn create_nonce_account(
 /// use anyhow::Result;
 /// # use anyhow::anyhow;
 ///
-/// fn create_transfer_tx_with_nonce(
+/// fn create_tx_with_nonce(
 ///     client: &RpcClient,
 ///     nonce_account_pubkey: &Pubkey,
 ///     payer: &Keypair,
@@ -609,9 +609,18 @@ pub fn create_nonce_account(
 ///         &payer.pubkey(),
 ///     );
 ///
-///     let message = Message::new(&[instr_advance_nonce_account, instr_transfer], Some(&payer.pubkey()));
+///     // the `advance_nonce_account` instruction must be the first issued in the transaction
+///     let message = Message::new(
+///         &[
+///             instr_advance_nonce_account,
+///             instr_transfer
+///         ],
+///         Some(&payer.pubkey()),
+///     );
+///
 ///     let mut tx = Transaction::new_unsigned(message);
 ///
+///     // sign the tx with nonce_account's `blockhash` instead of the Solana network's `latest_blockhash`
 ///     let nonce_account = client.get_account(&nonce_account_pubkey)?;
 ///     let nonce_data = solana_client::nonce_utils::data_from_account(&nonce_account)?;
 ///     let blockhash = nonce_data.blockhash;
@@ -636,7 +645,7 @@ pub fn create_nonce_account(
 /// # let nonce_account_pubkey = Pubkey::new_unique();
 /// # let payer = Keypair::new();
 /// # let receiver = Pubkey::new_unique();
-/// # create_transfer_tx_with_nonce(&client, &nonce_account_pubkey, &payer, &receiver, 1024, PathBuf::from("new_tx"))?;
+/// # create_tx_with_nonce(&client, &nonce_account_pubkey, &payer, &receiver, 1024, PathBuf::from("new_tx"))?;
 /// #
 /// # Ok::<(), anyhow::Error>(())
 /// ```

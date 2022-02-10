@@ -722,6 +722,51 @@ pub fn withdraw_nonce_account(
     )
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_program::example_mocks::solana_sdk;
+/// # use solana_program::example_mocks::solana_client;
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+/// };
+/// use anyhow::Result;
+///
+/// fn authorize_nonce_account_tx(
+///     client: &RpcClient,
+///     nonce_account_pubkey: &Pubkey,
+///     authorized_account: &Keypair,
+///     new_authority_pubkey: &Pubkey,
+/// ) -> Result<()> {
+///
+///     let instr = system_instruction::authorize_nonce_account(
+///         &nonce_account_pubkey,
+///         &authorized_account.pubkey(),
+///         &new_authority_pubkey,
+///     );
+///
+///     let mut tx = Transaction::new_with_payer(&[instr], Some(&authorized_account.pubkey()));
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     tx.try_sign(&[authorized_account], blockhash)?;
+///
+///     client.send_and_confirm_transaction(&tx)?;
+///
+///     Ok(())
+/// }
+/// #
+/// # let client = RpcClient::new(String::new());
+/// # let nonce_account_pubkey = Pubkey::new_unique();
+/// # let payer = Keypair::new();
+/// # let new_authority_pubkey = Pubkey::new_unique();
+/// # authorize_nonce_account_tx(&client, &nonce_account_pubkey, &payer, &new_authority_pubkey)?;
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn authorize_nonce_account(
     nonce_pubkey: &Pubkey,
     authorized_pubkey: &Pubkey,

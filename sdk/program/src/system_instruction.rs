@@ -620,7 +620,6 @@ pub fn create_nonce_account(
 ///
 ///     // save the signed tx locally
 ///     save_tx_to_file(&path, &tx)?;
-///
 /// #   fs::remove_file(&path)?;
 ///
 ///     Ok(())
@@ -655,6 +654,53 @@ pub fn advance_nonce_account(nonce_pubkey: &Pubkey, authorized_pubkey: &Pubkey) 
     )
 }
 
+/// # Examples
+///
+/// ```
+/// # use solana_program::example_mocks::solana_sdk;
+/// # use solana_program::example_mocks::solana_client;
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+///     nonce::State,
+/// };
+/// use anyhow::Result;
+///
+/// fn withdraw_nonce_account_tx(
+///     client: &RpcClient,
+///     nonce_account_pubkey: &Pubkey,
+///     authorized_account: &Keypair,
+/// ) -> Result<()> {
+///
+///     let nonce_rent = client.get_minimum_balance_for_rent_exemption(State::size())?;
+///
+///     let instr = system_instruction::withdraw_nonce_account(
+///         &nonce_account_pubkey,
+///         &authorized_account.pubkey(),
+///         &authorized_account.pubkey(),
+///         nonce_rent,
+///     );
+///
+///     let mut tx = Transaction::new_with_payer(&[instr], Some(&authorized_account.pubkey()));
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     tx.try_sign(&[authorized_account], blockhash)?;
+///
+///     client.send_and_confirm_transaction(&tx)?;
+///
+///     Ok(())
+/// }
+/// #
+/// # let client = RpcClient::new(String::new());
+/// # let nonce_account_pubkey = Pubkey::new_unique();
+/// # let payer = Keypair::new();
+/// # withdraw_nonce_account_tx(&client, &nonce_account_pubkey, &payer)?;
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn withdraw_nonce_account(
     nonce_pubkey: &Pubkey,
     authorized_pubkey: &Pubkey,

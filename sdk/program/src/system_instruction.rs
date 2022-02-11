@@ -572,7 +572,10 @@ pub fn create_nonce_account(
 /// ```
 /// # use solana_program::example_mocks::solana_sdk;
 /// # use solana_program::example_mocks::solana_client;
-/// use solana_client::rpc_client::RpcClient;
+/// use solana_client::{
+///     rpc_client::RpcClient,
+///     nonce_utils::data_from_account,
+/// };
 /// use solana_sdk::{
 ///     message::Message,
 ///     pubkey::Pubkey,

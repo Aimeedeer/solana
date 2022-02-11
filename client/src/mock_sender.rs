@@ -27,6 +27,7 @@ use {
         message::MessageHeader,
         pubkey::Pubkey,
         signature::Signature,
+        system_program,
         sysvar::epoch_schedule::EpochSchedule,
         transaction::{self, Transaction, TransactionError},
     },
@@ -109,7 +110,19 @@ impl RpcSender for MockSender {
         let val = match method.as_str().unwrap() {
             "getAccountInfo" => serde_json::to_value(Response {
                 context: RpcResponseContext { slot: 1 },
-                value: Value::Null,
+                value: UiAccount::encode(
+                    &Pubkey::new_unique(),
+                    &Account {
+                        lamports: 1_000_000,
+                        data: vec![],
+                        owner: Pubkey::new_unique(),
+                        executable: false,
+                        rent_epoch: 0,
+                    },
+                    UiAccountEncoding::Base64,
+                    None,
+                    None,
+                ),
             })?,
             "getBalance" => serde_json::to_value(Response {
                 context: RpcResponseContext { slot: 1 },

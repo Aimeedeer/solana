@@ -71,6 +71,93 @@ pub fn state_from_account<T: ReadableAccount + StateMut<Versions>>(
         .map(|v| v.convert_to_current())
 }
 
+/// # Examples
+///
+/// ```
+/// use solana_client::{
+///     rpc_client::RpcClient,
+///     nonce_utils::data_from_account,
+/// };
+/// use solana_sdk::{
+///     message::Message,
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     signature::Signer,
+///     system_instruction,
+///     transaction::Transaction,
+///     nonce::State,
+/// #   account::Account,
+/// #   nonce::state::Versions,
+/// #   nonce::state::Data,
+/// #   hash::Hash,
+/// #   nonce_account,
+/// #   account_utils::StateMut,
+/// };
+/// # use std::fs;
+/// # use std::fs::File;
+/// # use std::io::BufWriter;
+/// use std::path::PathBuf;
+/// use anyhow::Result;
+/// # use anyhow::anyhow;
+///
+/// fn create_tx_with_nonce(
+///     client: &RpcClient,
+///     nonce_account_pubkey: &Pubkey,
+///     payer: &Keypair,
+///     receiver: &Pubkey,
+///     amount: u64,
+///     path: PathBuf,
+/// ) -> Result<()> {
+///
+///     let instr = system_instruction::transfer(
+///         &payer.pubkey(),
+///         receiver,
+///         amount,
+///     );
+///
+///     let message = Message::new_with_nonce(
+///         vec![instr],
+///         Some(&payer.pubkey()),
+///         nonce_account_pubkey,
+///         &payer.pubkey(),
+///     );
+///
+///     let mut tx = Transaction::new_unsigned(message);
+///
+///     // sign the tx with nonce_account's `blockhash` instead of the Solana network's `latest_blockhash`
+///     let nonce_account = client.get_account(nonce_account_pubkey)?;
+/// #   let mut nonce_account = nonce_account::create_account(1).into_inner();
+/// #   let data = Data::new(Pubkey::new(&[1u8; 32]), Hash::new(&[42u8; 32]), 42);
+/// #   nonce_account
+/// #       .set_state(&Versions::new_current(State::Initialized(data.clone())))
+/// #       .unwrap();
+///     let nonce_data = data_from_account(&nonce_account)?;
+///     let blockhash = nonce_data.blockhash;
+///
+///     tx.try_sign(&[payer], blockhash)?;
+///
+///     // save the signed tx locally
+///     save_tx_to_file(&path, &tx)?;
+/// #   fs::remove_file(&path)?;
+///
+///     Ok(())
+/// }
+/// #
+/// # fn save_tx_to_file(path: &PathBuf, tx: &Transaction) -> Result<()> {
+/// #    let file = File::create(&path)?;
+/// #    let mut writer = BufWriter::new(file);
+/// #
+/// #    serde_json::to_writer(&mut writer, tx).map_err(|e| anyhow!("{}", e))
+/// # }
+/// #
+/// # let client = RpcClient::new_mock("succeeds".to_string());
+/// # let nonce_account_pubkey = Pubkey::new_unique();
+/// # let payer = Keypair::new();
+/// # let receiver = Pubkey::new_unique();
+/// # create_tx_with_nonce(&client, &nonce_account_pubkey, &payer, &receiver, 1024, PathBuf::from("new_tx"))?;
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn data_from_account<T: ReadableAccount + StateMut<Versions>>(
     account: &T,
 ) -> Result<Data, Error> {

@@ -63,12 +63,12 @@ pub mod solana_client {
 /// This lets examples in solana-program appear to be written as client
 /// programs.
 pub mod solana_sdk {
-    pub use crate::{hash, instruction, message, nonce, pubkey, system_instruction};
+    pub use crate::{hash, instruction, message, nonce, pubkey, system_instruction, system_program};
 
     pub mod signature {
         use crate::pubkey::Pubkey;
 
-        #[derive(Default)]
+        #[derive(Default, Debug)]
         pub struct Signature;
 
         pub struct Keypair;
@@ -128,6 +128,16 @@ pub mod solana_sdk {
                 Transaction {
                     message: Message::new(&[], None),
                 }
+            }
+            
+            pub fn new_signed_with_payer<T: Signers>(
+                instructions: &[Instruction],
+                payer: Option<&Pubkey>,
+                signing_keypairs: &T,
+                recent_blockhash: Hash,
+            ) -> Self {
+                let message = Message::new(instructions, payer);
+                Self::new(signing_keypairs, message, recent_blockhash)
             }
 
             pub fn sign<T: Signers>(&mut self, _keypairs: &T, _recent_blockhash: Hash) {}

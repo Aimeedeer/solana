@@ -305,6 +305,57 @@ pub enum SystemInstruction {
     },
 }
 
+/// # Examples
+///
+/// ```
+/// // Client example
+/// # use solana_program::example_mocks::{solana_sdk, solana_client};
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     instruction::Instruction,
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     system_program,
+///     transaction::Transaction,
+/// };
+/// use anyhow::Result;
+///
+/// fn create_account_with_zero_data(
+///     client: &RpcClient,
+///     payer: &Keypair,
+///     new_account: &Keypair,
+/// ) -> Result<()> {
+///     let space = 0;
+///     let rent = client.get_minimum_balance_for_rent_exemption(space.try_into()?)?;
+///     let instr = system_instruction::create_account(
+///         &payer.pubkey(),
+///         &new_account.pubkey(),
+///         rent,
+///         space,
+///         &system_program::ID,
+///     );
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     let tx = Transaction::new_signed_with_payer(
+///         &[instr],
+///         Some(&payer.pubkey()),
+///         &[payer, new_account],
+///         blockhash,
+///     );
+///
+///     let sig = client.send_and_confirm_transaction(&tx)?;
+///     println!("tx signature: {:#?}", sig);
+///
+///     Ok(())
+/// }
+/// # let payer = Keypair::new();
+/// # let new_account = Keypair::new();
+/// # let client = RpcClient::new(String::new());
+/// # create_account_with_zero_data(&client, &payer, &new_account);
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn create_account(
     from_pubkey: &Pubkey,
     to_pubkey: &Pubkey,

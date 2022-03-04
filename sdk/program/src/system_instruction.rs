@@ -307,8 +307,9 @@ pub enum SystemInstruction {
 
 /// # Examples
 ///
+/// Client example:
+///
 /// ```
-/// // Client example
 /// # use solana_program::example_mocks::{solana_sdk, solana_client};
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
@@ -321,12 +322,12 @@ pub enum SystemInstruction {
 /// };
 /// use anyhow::Result;
 ///
-/// fn create_account_with_zero_data(
+/// fn create_account(
 ///     client: &RpcClient,
 ///     payer: &Keypair,
 ///     new_account: &Keypair,
+///     space: u64,
 /// ) -> Result<()> {
-///     let space = 0;
 ///     let rent = client.get_minimum_balance_for_rent_exemption(space.try_into()?)?;
 ///     let instr = system_instruction::create_account(
 ///         &payer.pubkey(),
@@ -352,8 +353,72 @@ pub enum SystemInstruction {
 /// # let payer = Keypair::new();
 /// # let new_account = Keypair::new();
 /// # let client = RpcClient::new(String::new());
-/// # create_account_with_zero_data(&client, &payer, &new_account);
+/// # create_account(&client, &payer, &new_account, 0);
 /// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+///
+/// On chain program example:
+///
+/// ```
+/// # use borsh_derive::BorshDeserialize;
+/// # use borsh::BorshSerialize;
+/// # use borsh::de::BorshDeserialize;
+/// use solana_program::{
+///     account_info::{next_account_info, AccountInfo},
+///     entrypoint,
+///     entrypoint::ProgramResult,
+///     instruction::{AccountMeta, Instruction},
+///     msg,
+///     program::invoke,
+///     pubkey::Pubkey,
+///     system_instruction, 
+///     system_program,
+///     sysvar::rent::Rent,
+///     sysvar::Sysvar,
+/// };
+/// 
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct CreateAccountInstruction {
+///     pub space: u64,
+/// }
+///
+/// entrypoint!(process_instruction);
+///
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction_data: &[u8],
+/// ) -> ProgramResult {
+///     msg!("process instruction");
+///
+///     let instr = CreateAccountInstruction::deserialize(&mut &instruction_data[..])?;
+///
+///     let account_info_iter = &mut accounts.iter();
+///
+///     let payer = next_account_info(account_info_iter)?;
+///     let new_account = next_account_info(account_info_iter)?;
+///     let system_account = next_account_info(account_info_iter)?;
+///
+///     assert!(new_account.is_signer);
+///
+///     // do other verification ...
+///
+///     let rent = Rent::get()?;
+///     let lamports = rent.minimum_balance(instr.space.try_into().expect("failed converting `space` from u64 to usize"));
+///
+///     invoke(
+///         &system_instruction::create_account(
+///             payer.key,
+///             new_account.key,
+///             lamports,
+///             instr.space,
+///             &system_program::ID
+///         ),
+///         &[payer.clone(), new_account.clone(), system_account.clone()],
+///     )
+/// }
+///
 /// # Ok::<(), anyhow::Error>(())
 /// ```
 pub fn create_account(

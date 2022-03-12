@@ -539,6 +539,133 @@ pub fn transfer_with_seed(
     )
 }
 
+/// # Examples
+///
+/// Client example:
+///
+/// ```
+/// # use solana_program::example_mocks::{solana_sdk, solana_client};
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     instruction::Instruction,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+/// };
+/// use anyhow::Result;
+///
+/// fn allocate_space_for_account(
+///     client: &RpcClient,
+///     fee_payer: &Keypair,
+///     account_to_allocate: &Keypair,
+///     space: u64,
+/// ) -> Result<()> {
+///     let rent_lamports = client.get_minimum_balance_for_rent_exemption(space.try_into()?)?;
+///
+///     let instr_transfer = system_instruction::transfer(
+///         &fee_payer.pubkey(),
+///         &account_to_allocate.pubkey(),
+///         rent_lamports,
+///     );
+///     let instr_allocate = system_instruction::allocate(&account_to_allocate.pubkey(), space);
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     let tx = Transaction::new_signed_with_payer(
+///         &[instr_transfer, instr_allocate],
+///         Some(&fee_payer.pubkey()),
+///         &[fee_payer, account_to_allocate],
+///         blockhash,
+///     );
+///
+///     let sig = client.send_and_confirm_transaction(&tx)?;
+///     println!("tx signature: {:#?}", sig);
+///
+///     Ok(())
+/// }
+/// # let fee_payer = Keypair::new();
+/// # let account_to_allocate = Keypair::new();
+/// # let client = RpcClient::new(String::new());
+/// # allocate_space_for_account(&client, &fee_payer, &account_to_allocate, 64);
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+///
+/// On chain program example:
+///
+/// ```
+/// # use borsh_derive::BorshDeserialize;
+/// # use borsh::BorshSerialize;
+/// # use borsh::de::BorshDeserialize;
+/// use solana_program::{
+///     account_info::{next_account_info, AccountInfo},
+///     entrypoint,
+///     entrypoint::ProgramResult,
+///     instruction::{AccountMeta, Instruction},
+///     msg,
+///     program::invoke,
+///     pubkey::Pubkey,
+///     system_instruction, 
+///     system_program,
+///     sysvar::rent::Rent,
+///     sysvar::Sysvar,
+/// };
+/// 
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct AllocateSpaceInstruction {
+///     pub space: u64,
+/// }
+///
+/// entrypoint!(process_instruction);
+///
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction_data: &[u8],
+/// ) -> ProgramResult {
+///     msg!("process instruction");
+///
+///     let instr = AllocateSpaceInstruction::deserialize(&mut &instruction_data[..])?;
+///
+///     let account_info_iter = &mut accounts.iter();
+///
+///     let fee_payer = next_account_info(account_info_iter)?;
+///     let account_to_allocate = next_account_info(account_info_iter)?;
+///     let system_account = next_account_info(account_info_iter)?;
+///
+///     assert!(account_to_allocate.is_signer);
+///
+///     // do other verification ...
+///
+///     let rent = Rent::get()?;
+///     let rent_lamports = rent.minimum_balance(instr.space.try_into().expect("failed converting `space` from u64 to usize"));
+///
+///     invoke(
+///         &system_instruction::transfer(
+///             fee_payer.key,
+///             account_to_allocate.key,
+///             rent_lamports,
+///         ),
+///         &[
+///             fee_payer.clone(),
+///             account_to_allocate.clone()
+///         ],
+///     )?;
+///
+///     invoke(
+///         &system_instruction::allocate(
+///             account_to_allocate.key,
+///             instr.space,
+///         ),
+///         &[
+///             fee_payer.clone(),
+///             account_to_allocate.clone(),
+///             system_account.clone(),
+///         ],
+///     )
+/// }
+///
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn allocate(pubkey: &Pubkey, space: u64) -> Instruction {
     let account_metas = vec![AccountMeta::new(*pubkey, true)];
     Instruction::new_with_bincode(

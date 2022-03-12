@@ -503,6 +503,112 @@ pub fn assign_with_seed(
     )
 }
 
+/// # Examples
+///
+/// Client example:
+///
+/// ```
+/// # use solana_program::example_mocks::{solana_sdk, solana_client};
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     instruction::Instruction,
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+/// };
+/// use anyhow::Result;
+///
+/// fn transfer_lamports(
+///     client: &RpcClient,
+///     from: &Keypair,
+///     to: &Pubkey,
+///     amount: u64,
+/// ) -> Result<()> {
+///     let instr = system_instruction::transfer(
+///         &from.pubkey(),
+///         to,
+///         amount,
+///     );
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     let tx = Transaction::new_signed_with_payer(
+///         &[instr],
+///         Some(&from.pubkey()),
+///         &[from],
+///         blockhash,
+///     );
+///
+///     let sig = client.send_and_confirm_transaction(&tx)?;
+///     println!("tx signature: {:#?}", sig);
+///
+///     Ok(())
+/// }
+/// # let from = Keypair::new();
+/// # let to = Pubkey::new_unique();
+/// # let client = RpcClient::new(String::new());
+/// # transfer_lamports(&client, &from, &to, 1_000_000);
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+///
+/// On chain program example:
+///
+/// ```
+/// # use borsh_derive::BorshDeserialize;
+/// # use borsh::BorshSerialize;
+/// # use borsh::de::BorshDeserialize;
+/// use solana_program::{
+///     account_info::{next_account_info, AccountInfo},
+///     entrypoint,
+///     entrypoint::ProgramResult,
+///     instruction::{AccountMeta, Instruction},
+///     msg,
+///     program::invoke,
+///     pubkey::Pubkey,
+///     system_instruction, 
+///     system_program,
+/// };
+/// 
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct TransferLamportsInstruction {
+///     pub amount: u64,
+/// }
+///
+/// entrypoint!(process_instruction);
+///
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction_data: &[u8],
+/// ) -> ProgramResult {
+///     msg!("process instruction");
+///
+///     let instr = TransferLamportsInstruction::deserialize(&mut &instruction_data[..])?;
+///
+///     let account_info_iter = &mut accounts.iter();
+///
+///     let from = next_account_info(account_info_iter)?;
+///     let to = next_account_info(account_info_iter)?;
+///     let system_account = next_account_info(account_info_iter)?;
+///
+///     // do verification ...
+///
+///     invoke(
+///         &system_instruction::transfer(
+///             from.key,
+///             to.key,
+///             instr.amount,
+///         ),
+///         &[
+///             from.clone(),
+///             to.clone()
+///         ],
+///     )
+/// }
+///
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn transfer(from_pubkey: &Pubkey, to_pubkey: &Pubkey, lamports: u64) -> Instruction {
     let account_metas = vec![
         AccountMeta::new(*from_pubkey, true),

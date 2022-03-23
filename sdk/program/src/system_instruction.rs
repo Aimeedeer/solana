@@ -805,6 +805,120 @@ pub fn allocate_with_seed(
 }
 
 /// Create and sign new SystemInstruction::Transfer transaction to many destinations
+///
+/// # Examples
+///
+/// Client example:
+///
+/// ```
+/// # use solana_program::example_mocks::{solana_sdk, solana_client};
+/// use solana_client::rpc_client::RpcClient;
+/// use solana_sdk::{
+///     instruction::Instruction,
+///     pubkey::Pubkey,
+///     signature::Keypair,
+///     system_instruction,
+///     transaction::Transaction,
+/// };
+/// use anyhow::Result;
+///
+/// fn transfer_lamports_to_many(
+///     client: &RpcClient,
+///     from: &Keypair,
+///     to_and_amount: &[(Pubkey, u64)],
+/// ) -> Result<()> {
+///     let instr = system_instruction::transfer_many(&from.pubkey(), to_and_amount);
+///
+///     let blockhash = client.get_latest_blockhash()?;
+///     let tx = Transaction::new_signed_with_payer(
+///         &instr,
+///         Some(&from.pubkey()),
+///         &[from],
+///         blockhash,
+///     );
+///
+///     let sig = client.send_and_confirm_transaction(&tx)?;
+///     println!("tx signature: {:#?}", sig);
+///
+///     Ok(())
+/// }
+/// # let from = Keypair::new();
+/// # let to_and_amount = vec![
+/// #     (Pubkey::new_unique(), 1_000),
+/// #     (Pubkey::new_unique(), 2_000),
+/// #     (Pubkey::new_unique(), 3_000),
+/// # ];
+/// # let client = RpcClient::new(String::new());
+/// # transfer_lamports_to_many(&client, &from, &to_and_amount);
+/// #
+/// # Ok::<(), anyhow::Error>(())
+/// ```
+///
+/// On chain program example:
+///
+/// ```
+/// # use borsh_derive::BorshDeserialize;
+/// # use borsh::BorshSerialize;
+/// # use borsh::de::BorshDeserialize;
+/// use solana_program::{
+///     account_info::{next_account_info, next_account_infos, AccountInfo},
+///     entrypoint,
+///     entrypoint::ProgramResult,
+///     instruction::{AccountMeta, Instruction},
+///     msg,
+///     program::invoke,
+///     pubkey::Pubkey,
+///     system_instruction, 
+///     system_program,
+/// };
+/// 
+/// /// # Accounts
+/// ///
+/// /// - 0: from - writable, signer
+/// /// - 1: system_program - executable
+/// /// - *: to - writable
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct TransferLamportsToManyInstruction {
+///     pub amount_list: Vec<u64>,
+/// }
+///
+/// entrypoint!(process_instruction);
+///
+/// fn process_instruction(
+///     program_id: &Pubkey,
+///     accounts: &[AccountInfo],
+///     instruction_data: &[u8],
+/// ) -> ProgramResult {
+///     msg!("process instruction");
+///
+///     let instr = TransferLamportsToManyInstruction::deserialize(&mut &instruction_data[..])?;
+///
+///     let account_info_iter = &mut accounts.iter();
+///
+///     let from = next_account_info(account_info_iter)?;
+///     let system_account = next_account_info(account_info_iter)?;
+///
+///     let to_accounts = next_account_infos(account_info_iter, account_info_iter.len())?;
+///
+///     // do verification ...
+///
+///     let to_and_amount = to_accounts
+///         .iter()
+///         .zip(instr.amount_list.iter())
+///         .map(|(to, amount)| (*to.key, *amount))
+///         .collect::<Vec<(Pubkey, u64)>>();
+///
+///     let instr_list = system_instruction::transfer_many(from.key, to_and_amount.as_ref());
+///
+///     for instr in instr_list {
+///         invoke(&instr, accounts)?;
+///     }
+///
+///     Ok(())
+/// }
+///
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn transfer_many(from_pubkey: &Pubkey, to_lamports: &[(Pubkey, u64)]) -> Vec<Instruction> {
     to_lamports
         .iter()

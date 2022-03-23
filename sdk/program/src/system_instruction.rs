@@ -313,7 +313,6 @@ pub enum SystemInstruction {
 /// # use solana_program::example_mocks::{solana_sdk, solana_client};
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
-///     instruction::Instruction,
 ///     pubkey::Pubkey,
 ///     signature::Keypair,
 ///     system_instruction,
@@ -368,7 +367,6 @@ pub enum SystemInstruction {
 ///     account_info::{next_account_info, AccountInfo},
 ///     entrypoint,
 ///     entrypoint::ProgramResult,
-///     instruction::{AccountMeta, Instruction},
 ///     msg,
 ///     program::invoke,
 ///     pubkey::Pubkey,
@@ -511,7 +509,6 @@ pub fn assign_with_seed(
 /// # use solana_program::example_mocks::{solana_sdk, solana_client};
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
-///     instruction::Instruction,
 ///     pubkey::Pubkey,
 ///     signature::Keypair,
 ///     system_instruction,
@@ -562,12 +559,10 @@ pub fn assign_with_seed(
 ///     account_info::{next_account_info, AccountInfo},
 ///     entrypoint,
 ///     entrypoint::ProgramResult,
-///     instruction::{AccountMeta, Instruction},
 ///     msg,
 ///     program::invoke,
 ///     pubkey::Pubkey,
 ///     system_instruction, 
-///     system_program,
 /// };
 /// 
 /// #[derive(BorshSerialize, BorshDeserialize, Debug)]
@@ -653,7 +648,6 @@ pub fn transfer_with_seed(
 /// # use solana_program::example_mocks::{solana_sdk, solana_client};
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
-///     instruction::Instruction,
 ///     signature::Keypair,
 ///     system_instruction,
 ///     transaction::Transaction,
@@ -706,7 +700,6 @@ pub fn transfer_with_seed(
 ///     account_info::{next_account_info, AccountInfo},
 ///     entrypoint,
 ///     entrypoint::ProgramResult,
-///     instruction::{AccountMeta, Instruction},
 ///     msg,
 ///     program::invoke,
 ///     pubkey::Pubkey,
@@ -814,7 +807,6 @@ pub fn allocate_with_seed(
 /// # use solana_program::example_mocks::{solana_sdk, solana_client};
 /// use solana_client::rpc_client::RpcClient;
 /// use solana_sdk::{
-///     instruction::Instruction,
 ///     pubkey::Pubkey,
 ///     signature::Keypair,
 ///     system_instruction,
@@ -864,12 +856,10 @@ pub fn allocate_with_seed(
 ///     account_info::{next_account_info, next_account_infos, AccountInfo},
 ///     entrypoint,
 ///     entrypoint::ProgramResult,
-///     instruction::{AccountMeta, Instruction},
 ///     msg,
 ///     program::invoke,
 ///     pubkey::Pubkey,
 ///     system_instruction, 
-///     system_program,
 /// };
 /// 
 /// /// # Accounts

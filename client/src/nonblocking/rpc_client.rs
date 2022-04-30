@@ -1068,7 +1068,7 @@ impl RpcClient {
     /// ```
     /// # use solana_client::{
     /// #     client_error::ClientError,
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// # };
     /// # use solana_sdk::{
     /// #     commitment_config::CommitmentConfig,
@@ -1078,22 +1078,25 @@ impl RpcClient {
     /// #     system_transaction,
     /// # };
     /// # use std::time::Duration;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob and wait for confirmation
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_transaction(&tx)?;
+    /// let signature = rpc_client.send_transaction(&tx).await?;
     ///
     /// loop {
     ///     let commitment_config = CommitmentConfig::processed();
-    ///     let confirmed = rpc_client.confirm_transaction_with_commitment(&signature, commitment_config)?;
+    ///     let confirmed = rpc_client.confirm_transaction_with_commitment(&signature, commitment_config).await?;
     ///     if confirmed.value {
     ///         break;
     ///     }
     /// }
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn confirm_transaction_with_commitment(
@@ -1249,7 +1252,7 @@ impl RpcClient {
     /// ```
     /// # use solana_client::{
     /// #     client_error::ClientError,
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     rpc_response::RpcSimulateTransactionResult,
     /// # };
     /// # use solana_sdk::{
@@ -1259,15 +1262,18 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let result = rpc_client.simulate_transaction(&tx)?;
+    /// let result = rpc_client.simulate_transaction(&tx).await?;
     /// assert!(result.value.err.is_none());
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn simulate_transaction(
@@ -1326,7 +1332,7 @@ impl RpcClient {
     /// ```
     /// # use solana_client::{
     /// #     client_error::ClientError,
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     rpc_config::RpcSimulateTransactionConfig,
     /// #     rpc_response::RpcSimulateTransactionResult,
     /// # };
@@ -1336,12 +1342,13 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
     /// let config = RpcSimulateTransactionConfig {
     ///     sig_verify: true,
@@ -1350,8 +1357,10 @@ impl RpcClient {
     /// let result = rpc_client.simulate_transaction_with_config(
     ///     &tx,
     ///     config,
-    /// )?;
+    /// ).await?;
     /// assert!(result.value.err.is_none());
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn simulate_transaction_with_config(
@@ -1394,11 +1403,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let snapshot_slot_info = rpc_client.get_highest_snapshot_slot()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let snapshot_slot_info = rpc_client.get_highest_snapshot_slot().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_highest_snapshot_slot(&self) -> ClientResult<RpcSnapshotSlotInfo> {
@@ -1459,7 +1471,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::{
@@ -1469,14 +1481,17 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// # let latest_blockhash = rpc_client.get_latest_blockhash()?;
-    /// # let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_transaction(&tx)?;
-    /// let status = rpc_client.get_signature_status(&signature)?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// #     let latest_blockhash = rpc_client.get_latest_blockhash().await?;
+    /// #     let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
+    /// let signature = rpc_client.send_transaction(&tx).await?;
+    /// let status = rpc_client.get_signature_status(&signature).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_signature_status(
@@ -1527,7 +1542,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::{
@@ -1538,17 +1553,18 @@ impl RpcClient {
     /// #     system_transaction,
     /// # };
     /// # use std::time::Duration;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let alice = Keypair::new();
     /// // Send lamports from Alice to Bob and wait for the transaction to be processed
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_transaction(&tx)?;
+    /// let signature = rpc_client.send_transaction(&tx).await?;
     ///
     /// let status = loop {
-    ///    let statuses = rpc_client.get_signature_statuses(&[signature])?.value;
+    ///    let statuses = rpc_client.get_signature_statuses(&[signature]).await?.value;
     ///    if let Some(status) = statuses[0].clone() {
     ///        break status;
     ///    }
@@ -1556,6 +1572,8 @@ impl RpcClient {
     /// };
     ///
     /// assert!(status.err.is_none());
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_signature_statuses(
@@ -1606,7 +1624,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::{
@@ -1616,17 +1634,20 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
-    /// # fn get_old_transaction_signature() -> Signature { Signature::default() }
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let alice = Keypair::new();
+    /// #     fn get_old_transaction_signature() -> Signature { Signature::default() }
     /// // Check if an old transaction exists
     /// let signature = get_old_transaction_signature();
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
-    /// let statuses = rpc_client.get_signature_statuses_with_history(&[signature])?.value;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
+    /// let statuses = rpc_client.get_signature_statuses_with_history(&[signature]).await?.value;
     /// if statuses[0].is_none() {
     ///     println!("old transaction does not exist");
     /// }
-    /// # Ok::<(), ClientError>(())
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
+    /// Ok::<(), ClientError>(())
     /// ```
     pub async fn get_signature_statuses_with_history(
         &self,
@@ -1676,7 +1697,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::{
@@ -1686,18 +1707,21 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// # let latest_blockhash = rpc_client.get_latest_blockhash()?;
-    /// # let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_and_confirm_transaction(&tx)?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// #     let latest_blockhash = rpc_client.get_latest_blockhash().await?;
+    /// #     let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
+    /// let signature = rpc_client.send_and_confirm_transaction(&tx).await?;
     /// let commitment_config = CommitmentConfig::processed();
     /// let status = rpc_client.get_signature_status_with_commitment(
     ///     &signature,
     ///     commitment_config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_signature_status_with_commitment(
@@ -1747,7 +1771,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::{
@@ -1757,20 +1781,23 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// # let latest_blockhash = rpc_client.get_latest_blockhash()?;
-    /// # let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_transaction(&tx)?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
+    /// #     let latest_blockhash = rpc_client.get_latest_blockhash().await?;
+    /// #     let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
+    /// let signature = rpc_client.send_transaction(&tx).await?;
     /// let commitment_config = CommitmentConfig::processed();
     /// let search_transaction_history = true;
     /// let status = rpc_client.get_signature_status_with_commitment_and_history(
     ///     &signature,
     ///     commitment_config,
     ///     search_transaction_history,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_signature_status_with_commitment_and_history(
@@ -1807,11 +1834,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let slot = rpc_client.get_slot()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let slot = rpc_client.get_slot().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_slot(&self) -> ClientResult<Slot> {
@@ -1832,13 +1862,16 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::commitment_config::CommitmentConfig;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let commitment_config = CommitmentConfig::processed();
-    /// let slot = rpc_client.get_slot_with_commitment(commitment_config)?;
+    /// let slot = rpc_client.get_slot_with_commitment(commitment_config).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_slot_with_commitment(
@@ -1866,11 +1899,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let block_height = rpc_client.get_block_height()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let block_height = rpc_client.get_block_height().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_height(&self) -> ClientResult<u64> {
@@ -1892,15 +1928,18 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::commitment_config::CommitmentConfig;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let commitment_config = CommitmentConfig::processed();
     /// let block_height = rpc_client.get_block_height_with_commitment(
     ///     commitment_config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_height_with_commitment(
@@ -1926,14 +1965,17 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::slot_history::Slot;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let start_slot = 1;
     /// let limit = 3;
-    /// let leaders = rpc_client.get_slot_leaders(start_slot, limit)?;
+    /// let leaders = rpc_client.get_slot_leaders(start_slot, limit).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_slot_leaders(
@@ -1971,11 +2013,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let production = rpc_client.get_block_production()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let production = rpc_client.get_block_production().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_production(&self) -> RpcResult<RpcBlockProduction> {
@@ -1994,7 +2039,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// #     rpc_config::RpcBlockProductionConfig,
     /// #     rpc_config::RpcBlockProductionConfigRange,
@@ -2004,10 +2049,11 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// #     commitment_config::CommitmentConfig,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let start_slot = 1;
-    /// # let limit = 3;
-    /// let leader = rpc_client.get_slot_leaders(start_slot, limit)?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let start_slot = 1;
+    /// #     let limit = 3;
+    /// let leader = rpc_client.get_slot_leaders(start_slot, limit).await?;
     /// let leader = leader[0];
     /// let range = RpcBlockProductionConfigRange {
     ///     first_slot: start_slot,
@@ -2020,7 +2066,9 @@ impl RpcClient {
     /// };
     /// let production = rpc_client.get_block_production_with_config(
     ///     config
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_production_with_config(
@@ -2047,7 +2095,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// #     rpc_response::StakeActivationState,
     /// # };
@@ -2060,10 +2108,11 @@ impl RpcClient {
     /// #     transaction::Transaction
     /// # };
     /// # use std::str::FromStr;
-    /// # let alice = Keypair::new();
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let alice = Keypair::new();
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Find some vote account to delegate to
-    /// let vote_accounts = rpc_client.get_vote_accounts()?;
+    /// let vote_accounts = rpc_client.get_vote_accounts().await?;
     /// let vote_account = vote_accounts.current.get(0).unwrap_or_else(|| &vote_accounts.delinquent[0]);
     /// let vote_account_pubkey = &vote_account.vote_pubkey;
     /// let vote_account_pubkey = Pubkey::from_str(vote_account_pubkey).expect("pubkey");
@@ -2083,7 +2132,7 @@ impl RpcClient {
     ///     1_000_000,
     /// );
     ///
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = Transaction::new_signed_with_payer(
     ///     &instrs,
     ///     Some(&alice.pubkey()),
@@ -2091,15 +2140,17 @@ impl RpcClient {
     ///     latest_blockhash,
     /// );
     ///
-    /// rpc_client.send_and_confirm_transaction(&tx)?;
+    /// rpc_client.send_and_confirm_transaction(&tx).await?;
     ///
-    /// let epoch_info = rpc_client.get_epoch_info()?;
+    /// let epoch_info = rpc_client.get_epoch_info().await?;
     /// let activation = rpc_client.get_stake_activation(
     ///     stake_account_pubkey,
     ///     Some(epoch_info.epoch),
-    /// )?;
+    /// ).await?;
     ///
     /// assert_eq!(activation.state, StakeActivationState::Activating);
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_stake_activation(
@@ -2136,11 +2187,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let supply = rpc_client.supply()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let supply = rpc_client.supply().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn supply(&self) -> RpcResult<RpcSupply> {
@@ -2159,15 +2213,18 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
     /// # use solana_sdk::commitment_config::CommitmentConfig;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let commitment_config = CommitmentConfig::processed();
     /// let supply = rpc_client.supply_with_commitment(
     ///     commitment_config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn supply_with_commitment(
@@ -2194,13 +2251,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// #     rpc_config::RpcLargestAccountsConfig,
     /// #     rpc_config::RpcLargestAccountsFilter,
     /// # };
     /// # use solana_sdk::commitment_config::CommitmentConfig;
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let commitment_config = CommitmentConfig::processed();
     /// let config = RpcLargestAccountsConfig {
     ///     commitment: Some(commitment_config),
@@ -2208,7 +2266,9 @@ impl RpcClient {
     /// };
     /// let accounts = rpc_client.get_largest_accounts_with_config(
     ///     config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_largest_accounts_with_config(
@@ -2241,11 +2301,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let accounts = rpc_client.get_vote_accounts()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let accounts = rpc_client.get_vote_accounts().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_vote_accounts(&self) -> ClientResult<RpcVoteAccountStatus> {
@@ -2269,14 +2332,17 @@ impl RpcClient {
     /// ```
     /// # use solana_sdk::commitment_config::CommitmentConfig;
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// let commitment_config = CommitmentConfig::processed();
     /// let accounts = rpc_client.get_vote_accounts_with_commitment(
     ///     commitment_config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_vote_accounts_with_commitment(
@@ -2305,7 +2371,7 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// #     rpc_config::RpcGetVoteAccountsConfig,
     /// # };
@@ -2314,8 +2380,9 @@ impl RpcClient {
     /// #     signature::Signer,
     /// #     commitment_config::CommitmentConfig,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let vote_keypair = Keypair::new();
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let vote_keypair = Keypair::new();
     /// let vote_pubkey = vote_keypair.pubkey();
     /// let commitment = CommitmentConfig::processed();
     /// let config = RpcGetVoteAccountsConfig {
@@ -2326,7 +2393,9 @@ impl RpcClient {
     /// };
     /// let accounts = rpc_client.get_vote_accounts_with_config(
     ///     config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_vote_accounts_with_config(
@@ -2382,11 +2451,14 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// let cluster_nodes = rpc_client.get_cluster_nodes()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// let cluster_nodes = rpc_client.get_cluster_nodes().await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_cluster_nodes(&self) -> ClientResult<Vec<RpcContactInfo>> {
@@ -2413,12 +2485,15 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let slot = rpc_client.get_slot()?;
-    /// let block = rpc_client.get_block(slot)?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let slot = rpc_client.get_slot().await?;
+    /// let block = rpc_client.get_block(slot).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block(&self, slot: Slot) -> ClientResult<EncodedConfirmedBlock> {
@@ -2439,16 +2514,19 @@ impl RpcClient {
     /// ```
     /// # use solana_transaction_status::UiTransactionEncoding;
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let slot = rpc_client.get_slot()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let slot = rpc_client.get_slot().await?;
     /// let encoding = UiTransactionEncoding::Base58;
     /// let block = rpc_client.get_block_with_encoding(
     ///     slot,
     ///     encoding,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_with_encoding(
@@ -2479,12 +2557,13 @@ impl RpcClient {
     /// #     UiTransactionEncoding,
     /// # };
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     rpc_config::RpcBlockConfig,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
-    /// # let slot = rpc_client.get_slot()?;
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let slot = rpc_client.get_slot().await?;
     /// let config = RpcBlockConfig {
     ///     encoding: Some(UiTransactionEncoding::Base58),
     ///     transaction_details: Some(TransactionDetails::None),
@@ -2495,7 +2574,9 @@ impl RpcClient {
     /// let block = rpc_client.get_block_with_config(
     ///     slot,
     ///     config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_block_with_config(
@@ -2580,14 +2661,17 @@ impl RpcClient {
     ///
     /// ```
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Get up to the first 10 blocks
     /// let start_slot = 0;
     /// let end_slot = 9;
-    /// let blocks = rpc_client.get_blocks(start_slot, Some(end_slot))?;
+    /// let blocks = rpc_client.get_blocks(start_slot, Some(end_slot)).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_blocks(
@@ -2642,10 +2726,11 @@ impl RpcClient {
     /// ```
     /// # use solana_sdk::commitment_config::CommitmentConfig;
     /// # use solana_client::{
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     client_error::ClientError,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Get up to the first 10 blocks
     /// let start_slot = 0;
     /// let end_slot = 9;
@@ -2655,7 +2740,9 @@ impl RpcClient {
     ///     start_slot,
     ///     Some(end_slot),
     ///     commitment_config,
-    /// )?;
+    /// ).await?;
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn get_blocks_with_commitment(

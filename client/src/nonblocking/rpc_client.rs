@@ -630,7 +630,7 @@ impl RpcClient {
     /// #     signer::keypair::Keypair,
     /// #     system_transaction,
     /// # };
-    /// # async {
+    /// # futures::executor::block_on(async {
     /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// #     let alice = Keypair::new();
     /// #     let bob = Keypair::new();
@@ -638,8 +638,9 @@ impl RpcClient {
     /// #     let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
     /// let signature = rpc_client.send_and_confirm_transaction(&tx).await?;
-    /// #     Ok::<Signature, ClientError>(signature)
-    /// # };
+    /// #     Ok::<(), ClientError>(())
+    /// # })?;
+    /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn send_and_confirm_transaction(
         &self,
@@ -791,7 +792,7 @@ impl RpcClient {
     /// ```
     /// # use solana_client::{
     /// #     client_error::ClientError,
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// # };
     /// # use solana_sdk::{
     /// #     signature::Signer,
@@ -800,14 +801,17 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
+    /// # futures::executor::block_on(async {
     /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob
     /// # let alice = Keypair::new();
     /// # let bob = Keypair::new();
     /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
-    /// let signature = rpc_client.send_transaction(&tx)?;
+    /// let signature = rpc_client.send_transaction(&tx).await?;
+    /// # Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn send_transaction(&self, transaction: &Transaction) -> ClientResult<Signature> {

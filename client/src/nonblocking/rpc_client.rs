@@ -802,15 +802,15 @@ impl RpcClient {
     /// #     system_transaction,
     /// # };
     /// # futures::executor::block_on(async {
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
+    /// #     let alice = Keypair::new();
+    /// #     let bob = Keypair::new();
+    /// #     let lamports = 50;
     /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
     /// let signature = rpc_client.send_transaction(&tx).await?;
-    /// # Ok::<(), ClientError>(())
+    /// #     Ok::<(), ClientError>(())
     /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
@@ -880,7 +880,7 @@ impl RpcClient {
     /// ```
     /// # use solana_client::{
     /// #     client_error::ClientError,
-    /// #     rpc_client::RpcClient,
+    /// #     nonblocking::rpc_client::RpcClient,
     /// #     rpc_config::RpcSendTransactionConfig,
     /// # };
     /// # use solana_sdk::{
@@ -890,12 +890,13 @@ impl RpcClient {
     /// #     hash::Hash,
     /// #     system_transaction,
     /// # };
-    /// # let rpc_client = RpcClient::new_mock("succeeds".to_string());
+    /// # futures::executor::block_on(async {
+    /// #     let rpc_client = RpcClient::new_mock("succeeds".to_string());
     /// // Transfer lamports from Alice to Bob
-    /// # let alice = Keypair::new();
-    /// # let bob = Keypair::new();
-    /// # let lamports = 50;
-    /// let latest_blockhash = rpc_client.get_latest_blockhash()?;
+    ///     # let alice = Keypair::new();
+    ///     # let bob = Keypair::new();
+    ///     # let lamports = 50;
+    /// let latest_blockhash = rpc_client.get_latest_blockhash().await?;
     /// let tx = system_transaction::transfer(&alice, &bob.pubkey(), lamports, latest_blockhash);
     /// let config = RpcSendTransactionConfig {
     ///     skip_preflight: true,
@@ -904,7 +905,9 @@ impl RpcClient {
     /// let signature = rpc_client.send_transaction_with_config(
     ///     &tx,
     ///     config,
-    /// )?;
+    /// ).await?;
+    ///     # Ok::<(), ClientError>(())
+    /// # })?;
     /// # Ok::<(), ClientError>(())
     /// ```
     pub async fn send_transaction_with_config(

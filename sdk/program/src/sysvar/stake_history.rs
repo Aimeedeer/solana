@@ -2,6 +2,46 @@
 //!
 //! this account carries history about stake activations and de-activations
 //!
+//! Method `get` always returns
+//! `Err(ProgramError::UnsupportedSysvar)`, and method
+//! `from_account_info` doesn't work in production (devnet or
+//! mainnet-beta) because of the large data size. It works when we
+//! tested on `localhost` where there is no data in this sysvar
+//! account.
+//!
+//! # Examples
+//!
+//! Calling via the RPC client:
+//!
+//! ```
+//! # use solana_program::example_mocks::solana_sdk;
+//! # use solana_program::example_mocks::solana_client;
+//! # use solana_sdk::account::Account;
+//! # use solana_client::rpc_client::RpcClient;
+//! # use solana_sdk::sysvar::stake_history::{self, StakeHistory};
+//! # use anyhow::Result;
+//! #
+//! fn print_sysvar_stake_history(client: &RpcClient) -> Result<()> {
+//! #   client.set_get_account_response(stake_history::ID, Account {
+//! #       lamports: 114979200,
+//! #       data: vec![0, 0, 0, 0, 0, 0, 0, 0],
+//! #       owner: solana_sdk::system_program::ID,
+//! #       executable: false,
+//! #       rent_epoch: 307,
+//! #   });
+//! #
+//!     let stake_history = client.get_account(&stake_history::ID)?;
+//!     let data: StakeHistory = bincode::deserialize(&stake_history.data)?;
+//!     println!("stake_history account data: {:#?}", data);
+//!
+//!     Ok(())
+//! }
+//! #
+//! # let client = RpcClient::new(String::new());
+//! # print_sysvar_stake_history(&client)?;
+//! #
+//! # Ok::<(), anyhow::Error>(())
+//! ```
 pub use crate::stake_history::StakeHistory;
 use crate::sysvar::Sysvar;
 

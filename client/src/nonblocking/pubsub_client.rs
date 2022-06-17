@@ -78,6 +78,21 @@ pub struct PubsubClient {
 }
 
 impl PubsubClient {
+    /// # Examples
+    ///
+    /// ```
+    /// # use anyhow::Result;
+    /// # use solana_client::nonblocking::pubsub_client::{PubsubClient, PubsubClientResult};
+    /// # async fn new_pubsub_client() -> Result<()> {
+    /// let url = "wss://api.devnet.solana.com/";
+    /// let pubsub_client = PubsubClient::new(url).await?;
+    /// // do something ...
+    /// # pubsub_client.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// # new_pubsub_client();
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub async fn new(url: &str) -> PubsubClientResult<Self> {
         let url = Url::parse(url)?;
         let (ws, _response) = connect_async(url)
@@ -94,6 +109,23 @@ impl PubsubClient {
         })
     }
 
+        /// # Examples
+    ///
+    /// ```
+    /// # use anyhow::Result;
+    /// # use std::{thread::sleep, time::Duration};
+    /// # use solana_client::nonblocking::pubsub_client::{PubsubClient, PubsubClientResult};
+    /// # async fn new_pubsub_client() -> Result<()> {
+    /// let url = "wss://api.devnet.solana.com/";
+    /// let pubsub_client = PubsubClient::new(url).await?;
+    /// // do something ...
+    /// sleep(Duration::from_secs(60));
+    /// pubsub_client.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// # new_pubsub_client();
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
     pub async fn shutdown(self) -> PubsubClientResult {
         let _ = self.shutdown_tx.send(());
         self.ws.await.unwrap() // WS future should not be cancelled or panicked

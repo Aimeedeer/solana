@@ -151,6 +151,16 @@ impl PubsubClient {
         ))
     }
 
+    /// todo:
+    /// add comment
+    ///
+    /// errors when using `block_subscribe` and `vote_subscribe`:
+    ///
+    /// thread 'tokio-runtime-worker' panicked at 'called
+    /// `Result::unwrap()` on an `Err` value: SubscribeFailed {
+    /// reason: "Method not found (-32601)", message:
+    /// "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method
+    /// not found\"},\"id\":8}" }',
     /// # Examples
     ///
     /// ```

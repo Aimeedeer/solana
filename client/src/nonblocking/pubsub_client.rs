@@ -77,22 +77,102 @@ pub struct PubsubClient {
     ws: JoinHandle<PubsubClientResult>,
 }
 
+/// errors when using `block_subscribe` and `vote_subscribe`:
+///
+/// > thread 'tokio-runtime-worker' panicked at 'called
+/// `Result::unwrap()` on an `Err` value: SubscribeFailed {
+/// reason: "Method not found (-32601)", message:
+/// "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method
+/// not found\"},\"id\":8}" }',
+///
+/// # Examples
+///
+/// ```
+/// use anyhow::Result;
+/// use futures_util::StreamExt;
+/// use futures::future::BoxFuture;
+/// use futures::stream::BoxStream;
+/// use solana_account_decoder::UiAccount;
+/// use solana_client::{
+///     nonblocking::pubsub_client::{PubsubClient, PubsubClientResult},
+///     rpc_config::RpcAccountInfoConfig,
+///     rpc_response::Response,
+/// };
+/// use solana_sdk::{
+///     commitment_config::CommitmentConfig,
+///     pubkey::Pubkey,
+/// };
+/// use tokio::{
+///     runtime::Runtime,
+///     sync::{
+///         mpsc::unbounded_channel,
+///         oneshot,
+///     },
+///     task,
+///     time::{sleep, Duration},
+/// };
+///
+/// async fn get_account_updates(account_pubkey: Pubkey) -> Result<()> {
+///     let (account_sender, mut account_receiver) = unbounded_channel::<Response<UiAccount>>();
+///     let (account_unsubscribe_sender, mut account_unsubscribe_receiver) = oneshot::channel();
+///
+///     let url = "wss://api.devnet.solana.com/";
+///     let pubsub_client = PubsubClient::new(url).await.unwrap();
+///
+///     let task_account_subscribe = tokio::spawn(async move {
+///         let (mut account_notifications, account_unsubscribe) = pubsub_client
+///             .account_subscribe(
+///                 &account_pubkey,
+///                 Some(RpcAccountInfoConfig {
+///                     commitment: Some(CommitmentConfig::confirmed()),
+///                     ..RpcAccountInfoConfig::default()
+///                 }),
+///             )
+///             .await
+///             .unwrap();
+///
+///         if let Err(_) = account_unsubscribe_sender.send(account_unsubscribe) {
+///             println!("account_unsubscribe_receiver dropped");
+///         }
+///
+///         while let Some(account) = account_notifications.next().await {
+///             account_sender.send(account).unwrap();
+///         }
+///     });
+///
+///     let task_account_receiver = task::spawn(async move {
+///         loop {
+///             if let Some(result) = account_receiver.recv().await {
+///                 println!("account pubsub result: {:?}", result);
+///             } else {
+///                 break;
+///             }
+///         }
+///     });
+///
+///     match account_unsubscribe_receiver.await {
+///         Ok(account_unsubscribe) => {
+///             sleep(Duration::from_secs(5)).await;
+///             account_unsubscribe().await;
+///         }
+///         Err(e) => {
+///             println!("account_unsubscribe_receiver error: {}", e);
+///         }
+///     }
+///
+///     task_account_subscribe.await;
+///     task_account_receiver.await;
+///
+///     Ok(())
+/// }
+/// #
+/// # let rt = Runtime::new()?;
+/// # rt.block_on(async {
+/// #     get_account_updates(solana_sdk::pubkey::new_rand());
+/// # });
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 impl PubsubClient {
-    /// # Examples
-    ///
-    /// ```
-    /// # use anyhow::Result;
-    /// # use solana_client::nonblocking::pubsub_client::{PubsubClient, PubsubClientResult};
-    /// # async fn new_pubsub_client() -> Result<()> {
-    /// let url = "wss://api.devnet.solana.com/";
-    /// let pubsub_client = PubsubClient::new(url).await?;
-    /// // do something ...
-    /// # pubsub_client.shutdown().await?;
-    /// # Ok(())
-    /// # }
-    /// # new_pubsub_client();
-    /// # Ok::<(), anyhow::Error>(())
-    /// ```
     pub async fn new(url: &str) -> PubsubClientResult<Self> {
         let url = Url::parse(url)?;
         let (ws, _response) = connect_async(url)
@@ -109,23 +189,6 @@ impl PubsubClient {
         })
     }
 
-    /// # Examples
-    ///
-    /// ```
-    /// # use anyhow::Result;
-    /// # use std::{thread::sleep, time::Duration};
-    /// # use solana_client::nonblocking::pubsub_client::{PubsubClient, PubsubClientResult};
-    /// # async fn new_pubsub_client() -> Result<()> {
-    /// let url = "wss://api.devnet.solana.com/";
-    /// let pubsub_client = PubsubClient::new(url).await?;
-    /// // do something ...
-    /// sleep(Duration::from_secs(60));
-    /// pubsub_client.shutdown().await?;
-    /// # Ok(())
-    /// # }
-    /// # new_pubsub_client();
-    /// # Ok::<(), anyhow::Error>(())
-    /// ```
     pub async fn shutdown(self) -> PubsubClientResult {
         let _ = self.shutdown_tx.send(());
         self.ws.await.unwrap() // WS future should not be cancelled or panicked
@@ -151,102 +214,6 @@ impl PubsubClient {
         ))
     }
 
-    /// todo:
-    /// add comment
-    ///
-    /// errors when using `block_subscribe` and `vote_subscribe`:
-    ///
-    /// thread 'tokio-runtime-worker' panicked at 'called
-    /// `Result::unwrap()` on an `Err` value: SubscribeFailed {
-    /// reason: "Method not found (-32601)", message:
-    /// "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method
-    /// not found\"},\"id\":8}" }',
-    /// # Examples
-    ///
-    /// ```
-    /// # use anyhow;
-    /// # use futures_util::StreamExt;
-    /// # use solana_account_decoder::UiAccount;
-    /// # use solana_client::{
-    /// #     nonblocking::pubsub_client::{PubsubClient, PubsubClientResult},
-    /// #     rpc_config::RpcAccountInfoConfig,
-    /// #     rpc_response::Response,
-    /// # };
-    /// # use solana_sdk::{
-    /// #     commitment_config::CommitmentConfig,
-    /// #     pubkey::Pubkey,
-    /// # };
-    /// # use tokio::{
-    /// #     runtime::Runtime,
-    /// #     sync::{
-    /// #         mpsc::unbounded_channel,
-    /// #         oneshot,
-    /// #     },
-    /// #     task,
-    /// #     time::{sleep, Duration},
-    /// # };
-    /// # use futures::future::BoxFuture;
-    /// # use futures::stream::BoxStream;
-    /// async fn get_account_updates(account_pubkey: Pubkey) -> anyhow::Result<()> {
-    ///     let (account_sender, mut account_receiver) = unbounded_channel::<Response<UiAccount>>();
-    ///     let (account_unsubscribe_sender, mut account_unsubscribe_receiver) = oneshot::channel();
-    ///
-    ///     let url = "wss://api.devnet.solana.com/";
-    ///     let pubsub_client = PubsubClient::new(url).await.unwrap();
-    ///
-    ///     let task_account_subscribe = tokio::spawn(async move {
-    ///         let (mut account_notifications, account_unsubscribe) = pubsub_client
-    ///             .account_subscribe(
-    ///                 &account_pubkey,
-    ///                 Some(RpcAccountInfoConfig {
-    ///                     commitment: Some(CommitmentConfig::confirmed()),
-    ///                     ..RpcAccountInfoConfig::default()
-    ///                 }),
-    ///             )
-    ///             .await
-    ///             .unwrap();
-    ///
-    ///         if let Err(_) = account_unsubscribe_sender.send(account_unsubscribe) {
-    ///             println!("account_unsubscribe receiver dropped");
-    ///         }
-    ///
-    ///         while let Some(account) = account_notifications.next().await {
-    ///             account_sender.send(account).unwrap();
-    ///         }
-    ///     });
-    ///
-    ///     let task_account_receiver = task::spawn(async move {
-    ///         loop {
-    ///             if let Some(result) = account_receiver.recv().await {
-    ///                 println!("account pubsub result: {:?}", result);
-    ///             } else {
-    ///                 break;
-    ///             }
-    ///         }
-    ///     });
-    ///
-    ///     match account_unsubscribe_receiver.await {
-    ///         Ok(account_unsubscribe) => {
-    ///             sleep(Duration::from_secs(5)).await;
-    ///             account_unsubscribe().await;
-    ///         }
-    ///         Err(e) => {
-    ///             println!("account_unsubscribe_receiver error: {}", e);
-    ///         }
-    ///     }
-    ///
-    ///     task_account_subscribe.await;
-    ///     task_account_receiver.await;
-    ///
-    ///     Ok(())
-    /// }
-    /// #
-    /// # let rt = Runtime::new()?;
-    /// # rt.block_on(async {
-    /// #     get_account_updates(solana_sdk::pubkey::new_rand());
-    /// # });
-    /// # Ok::<(), anyhow::Error>(())
-    /// ```
     pub async fn account_subscribe(
         &self,
         pubkey: &Pubkey,

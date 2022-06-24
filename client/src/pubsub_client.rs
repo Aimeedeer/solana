@@ -234,6 +234,58 @@ fn connect_with_retry(
     }
 }
 
+/// errors when using `block_subscribe` and `vote_subscribe`:
+///
+/// > Error: unexpected message format: {"error": Object({"code":
+/// Number(-32601), "message": String("Method not found")}),
+/// "id":Number(1), "jsonrpc": String("2.0")}
+///
+/// # Examples
+///
+/// ```
+/// use anyhow::Result;
+/// use solana_sdk::commitment_config::CommitmentConfig;
+/// use solana_client::pubsub_client::PubsubClient;
+/// use solana_client::rpc_config::RpcAccountInfoConfig;
+/// use solana_sdk::pubkey::Pubkey;
+/// use std::thread;
+///
+/// fn get_account_updates(account_pubkey: Pubkey) -> Result<()> {
+///     let url = "wss://api.devnet.solana.com/";
+///
+///     let (mut account_subscription_client, account_subscription_receiver) =
+///         PubsubClient::account_subscribe(
+///             url,
+///             &account_pubkey,
+///             Some(RpcAccountInfoConfig {
+///                 encoding: None,
+///                 data_slice: None,
+///                 commitment: Some(CommitmentConfig::confirmed()),
+///                 min_context_slot: None,
+///             }),
+///         )?;
+///
+///     thread::spawn(move || loop {
+///         match account_subscription_receiver.recv() {
+///             Ok(response) => {
+///                 println!("account subscription response: {:?}", response);
+///             }
+///             Err(e) => {
+///                 println!("account subscription error: {:?}", e);
+///                 break;
+///             }
+///         }
+///     });
+///
+///     account_subscription_client.send_unsubscribe();
+///     account_subscription_client.shutdown();
+///
+///     Ok(())
+/// }
+/// #
+/// # get_account_updates(solana_sdk::pubkey::new_rand());
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 impl PubsubClient {
     pub fn account_subscribe(
         url: &str,

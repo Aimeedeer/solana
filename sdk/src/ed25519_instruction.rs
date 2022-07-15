@@ -26,6 +26,87 @@ pub struct Ed25519SignatureOffsets {
     message_instruction_index: u16,    // index of instruction data to get message data
 }
 
+/// # Examples
+///
+/// ```
+/// # use anyhow;
+/// # use borsh::{BorshDeserialize, BorshSerialize};
+/// # use solana_sdk::example_mocks::solana_client;
+/// # use solana_client::rpc_client::RpcClient;
+/// # use solana_sdk::{
+/// #    ed25519_instruction,
+/// #    pubkey::Pubkey,
+/// #    signature::{Keypair, Signer},
+/// #    transaction::Transaction,
+/// # };
+/// # use solana_program::{
+/// #    instruction::{AccountMeta, Instruction},
+/// #    system_program, sysvar,
+/// # };
+/// #
+/// // shared library between on-chain program and the client program
+///
+/// /// # Accounts
+/// ///
+/// /// - 0: instructions sysvar
+/// #[derive(BorshSerialize, BorshDeserialize, Debug)]
+/// pub struct CustomEd25519Instruction;
+///
+/// impl CustomEd25519Instruction {
+///     pub fn build_instruction(self, program_id: &Pubkey) -> Instruction {
+///         let instr = self;
+///         let accounts = vec![AccountMeta::new_readonly(sysvar::instructions::ID, false)];
+///
+///         Instruction::new_with_borsh(*program_id, &instr, accounts)
+///     }
+/// }
+///
+/// // the client program
+///
+/// use ed25519_dalek::{Keypair as Ed25519Keypair, Signer as Ed25519Signer, KEYPAIR_LENGTH};
+///
+/// const ED25519_KEYPAIR: [u8; KEYPAIR_LENGTH] = [
+///     200, 44, 197, 236, 56, 17, 29, 59, 168, 204, 169, 156, 9, 18, 216, 0, 165, 242, 19, 167, 30,
+///     32, 68, 205, 83, 19, 195, 87, 198, 224, 114, 103, 211, 210, 72, 176, 173, 140, 129, 224, 36,
+///     99, 29, 4, 141, 117, 74, 94, 173, 213, 199, 210, 26, 108, 206, 227, 55, 76, 126, 162, 14, 112,
+///     100, 112,
+/// ];
+///
+/// fn make_tx_with_ed25519_instruction(
+///     client: &RpcClient,
+///     program_id: &Pubkey,
+///     payer: &Keypair,
+/// ) -> anyhow::Result<()> {
+///    let message: &[u8] = b"This is a demo message.";
+///    let ed25519_keypair = Ed25519Keypair::from_bytes(&ED25519_KEYPAIR)?;
+///
+///    let ed25519_instr = ed25519_instruction::new_ed25519_instruction(&ed25519_keypair, message);
+///    let program_instr = CustomEd25519Instruction.build_instruction(program_id);
+///
+///    let blockhash = client.get_latest_blockhash()?;
+///    let tx = Transaction::new_signed_with_payer(
+///        &[ed25519_instr, program_instr],
+///        Some(&payer.pubkey()),
+///        &[payer],
+///        blockhash,
+///    );
+///
+///    let sig = client.send_and_confirm_transaction(&tx)?;
+///    println!("tx signature: {:?}", sig);
+///
+///    Ok(())
+/// }
+/// #
+/// # let client = RpcClient::new(String::new());
+/// # let program_id = Pubkey::new_unique();
+/// # let payer = Keypair::new();
+/// # make_tx_with_ed25519_instruction(
+/// #     &client,
+/// #     &program_id,
+/// #     &payer,
+/// # );
+/// # Ok::<(), anyhow::Error>(())
+/// ```
 pub fn new_ed25519_instruction(keypair: &ed25519_dalek::Keypair, message: &[u8]) -> Instruction {
     let signature = keypair.sign(message).to_bytes();
     let pubkey = keypair.public.to_bytes();

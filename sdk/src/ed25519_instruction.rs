@@ -28,6 +28,8 @@ pub struct Ed25519SignatureOffsets {
 
 /// # Examples
 ///
+/// The client program:
+///
 /// ```
 /// # use anyhow;
 /// # use borsh::{BorshDeserialize, BorshSerialize};
@@ -44,8 +46,6 @@ pub struct Ed25519SignatureOffsets {
 /// #    system_program, sysvar,
 /// # };
 /// #
-/// // the client program
-///
 /// use ed25519_dalek::{Keypair as Ed25519Keypair, Signer as Ed25519Signer, KEYPAIR_LENGTH};
 ///
 /// const ED25519_KEYPAIR: [u8; KEYPAIR_LENGTH] = [
@@ -81,7 +81,6 @@ pub struct Ed25519SignatureOffsets {
 /// }
 /// 
 /// // shared library between on-chain program and the client program
-///
 /// /// # Accounts
 /// ///
 /// /// - 0: instructions sysvar
@@ -110,7 +109,7 @@ pub struct Ed25519SignatureOffsets {
 ///
 /// In the on-chain program:
 ///
-/// ```
+/// ```no_run
 /// # use solana_program::{
 /// #     account_info::{next_account_info, AccountInfo},
 /// #     ed25519_program,
@@ -120,6 +119,63 @@ pub struct Ed25519SignatureOffsets {
 /// #     sysvar,
 /// # };
 /// use ed25519_dalek::PUBLIC_KEY_LENGTH;
+///
+/// const AUTHORIZED_ED25519_PUBKEY: [u8; PUBLIC_KEY_LENGTH] = [
+///     211, 210, 72, 176, 173, 140, 129, 224, 36, 99, 29, 4, 141, 117, 74, 94, 173, 213, 199, 210, 26,
+///     108, 206, 227, 55, 76, 126, 162, 14, 112, 100, 112,
+/// ];
+/// const EXPECTED_MESSAGE: &[u8] = b"This is a demo message.";
+///
+/// fn process_ed25519_instructions(
+///     instruction: CustomEd25519Instruction,
+///     accounts: &[AccountInfo],
+/// ) -> ProgramResult {
+///     use ed25519_defs::*;
+///     msg!("processing ed25519 instructions");
+///
+///     let account_info_iter = &mut accounts.iter();
+///
+///     // The instructions sysvar gives access to the instructions in the transaction.
+///     let instructions_sysvar_account = next_account_info(account_info_iter)?;
+///     assert!(sysvar::instructions::check_id(
+///         instructions_sysvar_account.key
+///     ));
+///
+///     let ed25519_instr = sysvar::instructions::load_instruction_at_checked(0, instructions_sysvar_account)?;
+///     assert!(ed25519_program::check_id(&ed25519_instr.program_id));
+///     assert!(ed25519_instr.data.len() > 1);
+///
+///     let num_signatures = ed25519_instr.data[0];
+///     assert_eq!(1, num_signatures);
+///
+///     let offsets = ed25519_defs::load_signature_offsets(&ed25519_instr.data)?;
+///
+///     let pubkey_start = usize::from(offsets.public_key_offset);
+///     let pubkey_end = pubkey_start.saturating_add(PUBKEY_SERIALIZED_SIZE);
+///     let ed25519_instr_pubkey_slice = &ed25519_instr.data[pubkey_start..pubkey_end];
+///     let ed25519_instr_pubkey = ed25519_dalek::PublicKey::from_bytes(ed25519_instr_pubkey_slice)
+///         .map_err(|_| ProgramError::InvalidArgument)?;
+///
+///     if ed25519_instr_pubkey_slice != AUTHORIZED_ED25519_PUBKEY {
+///         return Err(ProgramError::InvalidArgument);
+///     }
+///
+///     let expected_message = EXPECTED_MESSAGE;
+///     assert_eq!(
+///         usize::from(offsets.message_data_size),
+///         expected_message.len()
+///     );
+///
+///     let msg_start = usize::from(offsets.message_data_offset);
+///     let msg_end = msg_start.saturating_add(usize::from(offsets.message_data_size));
+///     let ed25519_instr_message = &ed25519_instr.data[msg_start..msg_end];
+///     assert_eq!(
+///         ed25519_instr_message,
+///         expected_message,
+///     );
+///    
+///    Ok(())
+/// }
 ///
 /// mod ed25519_defs {
 ///     use solana_program::program_error::ProgramError;
@@ -169,64 +225,6 @@ pub struct Ed25519SignatureOffsets {
 ///
 ///         Ok(offsets)
 ///     }
-/// }
-///
-/// const AUTHORIZED_ED25519_PUBKEY: [u8; PUBLIC_KEY_LENGTH] = [
-///     211, 210, 72, 176, 173, 140, 129, 224, 36, 99, 29, 4, 141, 117, 74, 94, 173, 213, 199, 210, 26,
-///     108, 206, 227, 55, 76, 126, 162, 14, 112, 100, 112,
-/// ];
-/// const EXPECTED_MESSAGE: &[u8] = b"This is a demo message.";
-///
-/// fn process_ed25519_instructions(
-///     instruction: CustomEd25519Instruction,
-///     accounts: &[AccountInfo],
-/// ) -> ProgramResult {
-///     use ed25519_defs::*;
-///     msg!("processing ed25519 instructions");
-///
-///     let account_info_iter = &mut accounts.iter();
-///
-///     // The instructions sysvar gives access to the instructions in the transaction.
-///     let instructions_sysvar_account = next_account_info(account_info_iter)?;
-/// //    assert!(sysvar::instructions::check_id(
-/// //        instructions_sysvar_account.key
-///  //   ));
-///
-///     let ed25519_instr = sysvar::instructions::load_instruction_at_checked(0, instructions_sysvar_account)?;
-///
-/// //    assert!(ed25519_program::check_id(&ed25519_instr.program_id));
-/// //    assert!(ed25519_instr.data.len() > 1);
-///
-///     let num_signatures = ed25519_instr.data[0];
-///  //   assert_eq!(1, num_signatures);
-///
-///     let offsets = ed25519_defs::load_signature_offsets(&ed25519_instr.data)?;
-///
-///     let pubkey_start = usize::from(offsets.public_key_offset);
-///     let pubkey_end = pubkey_start.saturating_add(PUBKEY_SERIALIZED_SIZE);
-///     let ed25519_instr_pubkey_slice = &ed25519_instr.data[pubkey_start..pubkey_end];
-///     let ed25519_instr_pubkey = ed25519_dalek::PublicKey::from_bytes(ed25519_instr_pubkey_slice)
-///         .map_err(|_| ProgramError::InvalidArgument)?;
-///
-///     if ed25519_instr_pubkey_slice != AUTHORIZED_ED25519_PUBKEY {
-///         return Err(ProgramError::InvalidArgument);
-///     }
-///
-///     let expected_message = EXPECTED_MESSAGE;
-/// //    assert_eq!(
-/// //        usize::from(offsets.message_data_size),
-/// //        expected_message.len()
-/// //    );
-///
-///     let msg_start = usize::from(offsets.message_data_offset);
-///     let msg_end = msg_start.saturating_add(usize::from(offsets.message_data_size));
-///     let ed25519_instr_message = &ed25519_instr.data[msg_start..msg_end];
-/// //    assert_eq!(
-/// //        ed25519_instr_message,
-///  //       expected_message,
-///  //   );
-///    
-///    Ok(())
 /// }
 /// #
 /// # use borsh::{BorshDeserialize, BorshSerialize};

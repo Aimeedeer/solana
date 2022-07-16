@@ -188,17 +188,17 @@ pub struct Ed25519SignatureOffsets {
 ///
 ///     // The instructions sysvar gives access to the instructions in the transaction.
 ///     let instructions_sysvar_account = next_account_info(account_info_iter)?;
-///     assert!(sysvar::instructions::check_id(
-///         instructions_sysvar_account.key
-///     ));
+/// //    assert!(sysvar::instructions::check_id(
+/// //        instructions_sysvar_account.key
+///  //   ));
 ///
 ///     let ed25519_instr = sysvar::instructions::load_instruction_at_checked(0, instructions_sysvar_account)?;
 ///
-///     assert!(ed25519_program::check_id(&ed25519_instr.program_id));
-///     assert!(ed25519_instr.data.len() > 1);
+/// //    assert!(ed25519_program::check_id(&ed25519_instr.program_id));
+/// //    assert!(ed25519_instr.data.len() > 1);
 ///
 ///     let num_signatures = ed25519_instr.data[0];
-///     assert_eq!(1, num_signatures);
+///  //   assert_eq!(1, num_signatures);
 ///
 ///     let offsets = ed25519_defs::load_signature_offsets(&ed25519_instr.data)?;
 ///
@@ -213,18 +213,18 @@ pub struct Ed25519SignatureOffsets {
 ///     }
 ///
 ///     let expected_message = EXPECTED_MESSAGE;
-///     assert_eq!(
-///         usize::from(offsets.message_data_size),
-///         expected_message.len()
-///     );
+/// //    assert_eq!(
+/// //        usize::from(offsets.message_data_size),
+/// //        expected_message.len()
+/// //    );
 ///
 ///     let msg_start = usize::from(offsets.message_data_offset);
 ///     let msg_end = msg_start.saturating_add(usize::from(offsets.message_data_size));
 ///     let ed25519_instr_message = &ed25519_instr.data[msg_start..msg_end];
-///     assert_eq!(
-///         ed25519_instr_message,
-///         expected_message,
-///     );
+/// //    assert_eq!(
+/// //        ed25519_instr_message,
+///  //       expected_message,
+///  //   );
 ///    
 ///    Ok(())
 /// }
